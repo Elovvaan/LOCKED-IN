@@ -392,6 +392,29 @@ describe('Skills Routes', () => {
       });
     });
 
+    it('should return hasVoted=false for user who has not voted', async () => {
+      // token1 is the creator and has not voted in the battle (can't vote for themselves)
+      const res = await request(app)
+        .get(`/skills/${skillPostId}/battle`)
+        .set('Authorization', `Bearer ${token1}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body).toHaveProperty('hasVoted');
+      expect(res.body).toHaveProperty('userVotedFor');
+      expect(res.body).toHaveProperty('endsAt');
+      expect(res.body).toHaveProperty('isEnded');
+    });
+
+    it('should return hasVoted=true and userVotedFor for user who voted', async () => {
+      // token3 voted for userId1 in the /vote endpoint earlier in the test suite
+      const res = await request(app)
+        .get(`/skills/${skillPostId}/battle`)
+        .set('Authorization', `Bearer ${token3}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body.hasVoted).toBe(true);
+    });
+
     it('should return 404 for non-existent post', async () => {
       const res = await request(app)
         .get('/skills/99999/battle')
@@ -485,6 +508,144 @@ describe('Skills Routes', () => {
         .send();
 
       expect(res.status).toBe(404);
+    });
+  });
+
+  describe('POST /skills with endsAt (battle countdown)', () => {
+    it('should create a skill post with endsAt field', async () => {
+      const futureDate = new Date(Date.now() + 3600000).toISOString();
+      const res = await request(app)
+        .post('/skills')
+        .set('Authorization', `Bearer ${token1}`)
+        .send({
+          videoUrl: 'https://example.com/timed.mp4',
+          title: 'Timed Battle Challenge',
+          endsAt: futureDate,
+        });
+
+      expect(res.status).toBe(201);
+      expect(res.body).toHaveProperty('endsAt');
+      expect(new Date(res.body.endsAt).getTime()).toBeGreaterThan(Date.now());
+    });
+
+    it('should return isEnded=false for a battle that has not ended', async () => {
+      const futureDate = new Date(Date.now() + 3600000).toISOString();
+      const postRes = await request(app)
+        .post('/skills')
+        .set('Authorization', `Bearer ${token1}`)
+        .send({
+          videoUrl: 'https://example.com/active.mp4',
+          title: 'Active Battle',
+          endsAt: futureDate,
+        });
+      const timedPostId = postRes.body.id;
+
+      const battleRes = await request(app)
+        .get(`/skills/${timedPostId}/battle`)
+        .set('Authorization', `Bearer ${token1}`);
+
+      expect(battleRes.status).toBe(200);
+      expect(battleRes.body.isEnded).toBe(false);
+      expect(battleRes.body.endsAt).not.toBeNull();
+    });
+
+    it('should return isEnded=true for a battle past its endsAt', async () => {
+      const pastDate = new Date(Date.now() - 1000).toISOString();
+      const postRes = await request(app)
+        .post('/skills')
+        .set('Authorization', `Bearer ${token1}`)
+        .send({
+          videoUrl: 'https://example.com/ended.mp4',
+          title: 'Ended Battle',
+          endsAt: pastDate,
+        });
+      const endedPostId = postRes.body.id;
+
+      const battleRes = await request(app)
+        .get(`/skills/${endedPostId}/battle`)
+        .set('Authorization', `Bearer ${token1}`);
+
+      expect(battleRes.status).toBe(200);
+      expect(battleRes.body.isEnded).toBe(true);
+    });
+  });
+
+  describe('POST /skills/:id/rematch', () => {
+    let endedPostId: number;
+    let activePostId: number;
+
+    beforeAll(async () => {
+      const pastDate = new Date(Date.now() - 2000).toISOString();
+      const endedRes = await request(app)
+        .post('/skills')
+        .set('Authorization', `Bearer ${token1}`)
+        .send({
+          videoUrl: 'https://example.com/ended-rematch.mp4',
+          title: 'Ended Battle For Rematch',
+          endsAt: pastDate,
+        });
+      endedPostId = endedRes.body.id;
+
+      const futureDate = new Date(Date.now() + 3600000).toISOString();
+      const activeRes = await request(app)
+        .post('/skills')
+        .set('Authorization', `Bearer ${token1}`)
+        .send({
+          videoUrl: 'https://example.com/active-rematch.mp4',
+          title: 'Active Battle No Rematch',
+          endsAt: futureDate,
+        });
+      activePostId = activeRes.body.id;
+    });
+
+    it('should create a rematch post for an ended battle', async () => {
+      const futureDate = new Date(Date.now() + 3600000).toISOString();
+      const res = await request(app)
+        .post(`/skills/${endedPostId}/rematch`)
+        .set('Authorization', `Bearer ${token2}`)
+        .send({ endsAt: futureDate });
+
+      expect(res.status).toBe(201);
+      expect(res.body).toHaveProperty('rematchOf', endedPostId);
+      expect(res.body.title).toBe('Ended Battle For Rematch');
+      expect(res.body.userId).toBe(userId2);
+    });
+
+    it('should reject rematch for a battle that has not ended', async () => {
+      const res = await request(app)
+        .post(`/skills/${activePostId}/rematch`)
+        .set('Authorization', `Bearer ${token2}`)
+        .send({});
+
+      expect(res.status).toBe(400);
+      expect(res.body.error).toMatch(/not ended/);
+    });
+
+    it('should allow rematch for a post without endsAt (no time limit)', async () => {
+      const res = await request(app)
+        .post(`/skills/${skillPostId}/rematch`)
+        .set('Authorization', `Bearer ${token2}`)
+        .send({});
+
+      expect(res.status).toBe(201);
+      expect(res.body).toHaveProperty('rematchOf', skillPostId);
+    });
+
+    it('should return 404 for non-existent post', async () => {
+      const res = await request(app)
+        .post('/skills/99999/rematch')
+        .set('Authorization', `Bearer ${token1}`)
+        .send({});
+
+      expect(res.status).toBe(404);
+    });
+
+    it('should require auth', async () => {
+      const res = await request(app)
+        .post(`/skills/${endedPostId}/rematch`)
+        .send({});
+
+      expect(res.status).toBe(401);
     });
   });
 });
