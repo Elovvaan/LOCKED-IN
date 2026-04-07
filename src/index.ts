@@ -15,14 +15,21 @@ const HOST = process.env.HOST || '0.0.0.0';
 
 async function boot() {
   try {
-    await sequelize.sync({ alter: false });
     console.log('BOOTING SERVER...');
+
     await new Promise<void>((resolve, reject) => {
       app.listen(PORT, HOST, resolve).on('error', reject);
     });
+
     console.log(`SERVER STARTED ON ${HOST}:${PORT}`);
+
+    // Run DB sync AFTER server is live
+    sequelize.sync({ alter: false })
+      .then(() => console.log('DB SYNCED'))
+      .catch(err => console.error('DB SYNC FAILED:', err));
+
   } catch (err) {
-    console.error('Failed to start server:', err);
+    console.error('BOOT FAILED:', err);
     process.exit(1);
   }
 }
