@@ -30,7 +30,7 @@ LOCKED-IN bridges the gap between online skill videos and real-world competition
 | Backend API | Node.js, Express, TypeScript |
 | Database | Sequelize ORM + SQLite3 |
 | Auth | JWT (7-day tokens), bcrypt password hashing |
-| Rate Limiting | express-rate-limit (100 req / 15 min per IP) |
+| Rate Limiting | express-rate-limit (100 requests / 15 min per IP) |
 | Testing | Jest + Supertest |
 
 ---
@@ -110,6 +110,21 @@ LOCKED-IN/
 ---
 
 ## Getting Started
+
+### Environment Variables
+
+**Backend** — create a `.env` file in the project root (optional for development; required in production):
+
+```
+JWT_SECRET=your-secret-key   # required in production; defaults to 'locked-in-secret-key' in dev
+PORT=3000                    # optional, defaults to 3000
+```
+
+**Mobile** — copy `mobile/.env.example` to `mobile/.env` and set the backend URL:
+
+```
+EXPO_PUBLIC_API_URL=http://localhost:3000
+```
 
 ### Backend
 
