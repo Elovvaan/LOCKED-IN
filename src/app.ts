@@ -3,6 +3,7 @@ import rateLimit from 'express-rate-limit';
 import authRoutes from './routes/auth';
 import eventRoutes from './routes/events';
 import userRoutes from './routes/users';
+import skillRoutes from './routes/skills';
 
 const app = express();
 app.use(express.json());
@@ -21,5 +22,6 @@ if (process.env.NODE_ENV !== 'test') {
 app.use('/auth', authRoutes);
 app.use('/events', eventRoutes);
 app.use('/users', userRoutes);
+app.use('/skills', skillRoutes);
 
 export default app;
