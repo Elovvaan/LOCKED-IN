@@ -1,4 +1,5 @@
 import { Router, Response } from 'express';
+import { literal, Op } from 'sequelize';
 import { authMiddleware, AuthRequest } from '../middleware/auth';
 import { User, SkillPost, SkillResponse, SkillVote, Event } from '../models';
 
@@ -24,10 +25,15 @@ router.get('/:id/profile', async (req: AuthRequest, res: Response) => {
       }
     }
 
-    // Skill stats
+    // Skill stats - include counts via subqueries to avoid N+1
     const postedSkills = await SkillPost.findAll({
       where: { userId },
-      attributes: ['id', 'title', 'videoUrl', 'thumbnailUrl', 'caption', 'category', 'createdAt'],
+      attributes: {
+        include: [
+          [literal('(SELECT COUNT(*) FROM skill_votes WHERE skill_votes.skillPostId = SkillPost.id)'), 'voteCount'],
+          [literal('(SELECT COUNT(*) FROM skill_responses WHERE skill_responses.skillPostId = SkillPost.id)'), 'responseCount'],
+        ],
+      },
       order: [['createdAt', 'DESC']],
     });
 
@@ -36,7 +42,7 @@ router.get('/:id/profile', async (req: AuthRequest, res: Response) => {
     // challengeWins: times the user received votes as targetUserId
     const challengeWins = await SkillVote.count({ where: { targetUserId: userId } });
 
-    // challengeDefenses: times the user's original post received a response and the user got votes
+    // challengeDefenses: times the user received votes on their own skill posts
     const userPostIds = postedSkills.map((p: any) => p.id);
     let challengeDefenses = 0;
     if (userPostIds.length > 0) {
@@ -51,22 +57,15 @@ router.get('/:id/profile', async (req: AuthRequest, res: Response) => {
     if (postTitles.length > 0) {
       const now = new Date();
       liveEventLinks = await Event.findAll({
-        where: { title: postTitles, endTime: { $gte: now } as any },
+        where: { title: postTitles, endTime: { [Op.gte]: now } },
         attributes: ['id', 'title', 'startTime', 'endTime', 'locationName'],
       }).then((events: any[]) => events.map((e: any) => e.get({ plain: true })));
     }
 
-    // pinnedTopSkills: top 3 posts by vote count
-    const pinnedTopSkills = await Promise.all(
-      postedSkills.slice(0, 10).map(async (post: any) => {
-        const plain = post.get({ plain: true });
-        plain.voteCount = await SkillVote.count({ where: { skillPostId: plain.id } });
-        plain.responseCount = await SkillResponse.count({ where: { skillPostId: plain.id } });
-        return plain;
-      })
-    );
-    pinnedTopSkills.sort((a: any, b: any) => b.voteCount - a.voteCount);
-    const topPinned = pinnedTopSkills.slice(0, 3);
+    // pinnedTopSkills: top 3 posts by vote count (already included via subquery)
+    const skillsWithCounts = postedSkills.map((p: any) => p.get({ plain: true }));
+    skillsWithCounts.sort((a: any, b: any) => Number(b.voteCount) - Number(a.voteCount));
+    const pinnedTopSkills = skillsWithCounts.slice(0, 3);
 
     return res.json({
       user: {
@@ -78,12 +77,12 @@ router.get('/:id/profile', async (req: AuthRequest, res: Response) => {
         locationWins,
       },
       kingOfLocation,
-      postedSkills: postedSkills.map((p: any) => p.get({ plain: true })),
+      postedSkills: skillsWithCounts,
       responsesMade,
       challengeWins,
       challengeDefenses,
       liveEventLinks,
-      pinnedTopSkills: topPinned,
+      pinnedTopSkills,
     });
   } catch (err: any) {
     return res.status(500).json({ error: err.message });

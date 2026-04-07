@@ -1,5 +1,5 @@
 import { Router, Response } from 'express';
-import { Op } from 'sequelize';
+import { literal } from 'sequelize';
 import { authMiddleware, AuthRequest } from '../middleware/auth';
 import { SkillPost, SkillResponse, SkillVote, User, Event } from '../models';
 
@@ -34,22 +34,21 @@ router.get('/feed', async (req: AuthRequest, res: Response) => {
       include: [
         { model: User, as: 'creator', attributes: ['id', 'username'] },
       ],
+      attributes: {
+        include: [
+          [literal('(SELECT COUNT(*) FROM skill_responses WHERE skill_responses.skillPostId = SkillPost.id)'), 'responseCount'],
+          [literal('(SELECT COUNT(*) FROM skill_votes WHERE skill_votes.skillPostId = SkillPost.id)'), 'voteCount'],
+        ],
+      },
       order: [['createdAt', 'DESC']],
     });
 
-    const feed = await Promise.all(
-      posts.map(async (post: any) => {
-        const plain = post.get({ plain: true });
-        plain.responseCount = await SkillResponse.count({ where: { skillPostId: plain.id } });
-        plain.voteCount = await SkillVote.count({ where: { skillPostId: plain.id } });
-        return plain;
-      })
-    );
+    const feed = posts.map((post: any) => post.get({ plain: true }));
 
     // Sort by newest + engagement (responseCount + voteCount)
     feed.sort((a: any, b: any) => {
-      const engagementA = a.responseCount + a.voteCount;
-      const engagementB = b.responseCount + b.voteCount;
+      const engagementA = Number(a.responseCount) + Number(a.voteCount);
+      const engagementB = Number(b.responseCount) + Number(b.voteCount);
       if (engagementB !== engagementA) return engagementB - engagementA;
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     });
@@ -66,6 +65,12 @@ router.get('/:id', async (req: AuthRequest, res: Response) => {
     const postId = parseInt(req.params.id);
     const post = await SkillPost.findByPk(postId, {
       include: [{ model: User, as: 'creator', attributes: ['id', 'username'] }],
+      attributes: {
+        include: [
+          [literal('(SELECT COUNT(*) FROM skill_responses WHERE skill_responses.skillPostId = SkillPost.id)'), 'responseCount'],
+          [literal('(SELECT COUNT(*) FROM skill_votes WHERE skill_votes.skillPostId = SkillPost.id)'), 'voteCount'],
+        ],
+      },
     });
     if (!post) return res.status(404).json({ error: 'SkillPost not found' });
 
@@ -75,11 +80,9 @@ router.get('/:id', async (req: AuthRequest, res: Response) => {
       order: [['createdAt', 'ASC']],
     });
 
-    const responseCount = responses.length;
-    const voteCount = await SkillVote.count({ where: { skillPostId: postId } });
+    const plain = post.get({ plain: true }) as any;
 
     // Find events spawned from this skill post (title matches)
-    const plain = post.get({ plain: true });
     const eventLinks = await Event.findAll({
       where: { title: plain.title },
       attributes: ['id', 'title', 'startTime', 'endTime', 'locationName', 'isPublic'],
@@ -89,7 +92,7 @@ router.get('/:id', async (req: AuthRequest, res: Response) => {
       post: plain,
       responses: responses.map((r: any) => r.get({ plain: true })),
       eventLinks: eventLinks.map((e: any) => e.get({ plain: true })),
-      stats: { responseCount, voteCount },
+      stats: { responseCount: Number(plain.responseCount), voteCount: Number(plain.voteCount) },
     });
   } catch (err: any) {
     return res.status(500).json({ error: err.message });
