@@ -18,9 +18,8 @@ export function BattleModeScreen() {
 
   const handleRematch = useCallback(async () => {
     try {
-      await createRematch(id);
-      Alert.alert('Rematch created!', 'A rematch has been requested.');
-      navigation.goBack();
+      const rematch = await createRematch(id);
+      navigation.replace('BattleMode', { id: rematch.id });
     } catch (e: any) {
       Alert.alert('Error', e.response?.data?.error || e.message);
     }
@@ -41,8 +40,9 @@ export function BattleModeScreen() {
   if (error && !data) return <ErrorState message={error} onRetry={reload} />;
   if (!data) return null;
 
-  const { battleResponses, currentLeader, isBattleReady, hasVoted, isEnded, endsAt } = data;
+  const { battleResponses, currentLeader, isBattleReady, hasVoted, userVotedFor, isEnded, endsAt } = data;
   const [left, right] = battleResponses || [];
+  const hasLeader = !!currentLeader;
 
   return (
     <View style={styles.container}>
@@ -58,20 +58,24 @@ export function BattleModeScreen() {
             <BattlePane
               response={left}
               isLeader={currentLeader?.userId === left.userId}
+              isLoser={hasLeader && currentLeader?.userId !== left.userId}
               hasVoted={hasVoted}
               isEnded={isEnded}
               voting={voting}
               onVote={() => handleVote(left.id)}
+              userVotedFor={userVotedFor}
             />
           }
           right={
             <BattlePane
               response={right}
               isLeader={currentLeader?.userId === right.userId}
+              isLoser={hasLeader && currentLeader?.userId !== right.userId}
               hasVoted={hasVoted}
               isEnded={isEnded}
               voting={voting}
               onVote={() => handleVote(right.id)}
+              userVotedFor={userVotedFor}
             />
           }
         />
