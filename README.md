@@ -3,50 +3,25 @@ REAL CHALLENGE GAME
 
 ---
 
-## Run mobile app
+## Try the app — no terminal needed
 
-> **No coding experience needed.** Follow these steps exactly.
+> **Open the link below in any browser. That's it.**
 
-**What you need first:**
-- [Node.js](https://nodejs.org/) installed (download the "LTS" version)
-- [Expo Go](https://expo.dev/go) app installed on your phone (free, from the App Store or Google Play)
+🔗 **[https://elovvaan.github.io/LOCKED-IN](https://elovvaan.github.io/LOCKED-IN)**
 
-**Steps:**
-
-1. **Download the repo** — click the green "Code" button on GitHub and choose "Download ZIP", then unzip it. Or if you have Git: `git clone https://github.com/Elovvaan/LOCKED-IN.git`
-
-2. **Open a terminal in the `mobile` folder**
-   - On Mac: open Terminal, type `cd ` (with a space), then drag the `mobile` folder into the Terminal window and press Enter.
-   - On Windows: open the `mobile` folder in File Explorer, click the address bar, type `cmd`, and press Enter.
-
-3. **Set up the backend URL** — in the `mobile` folder, copy the file `.env.example` and rename the copy to `.env`. Open `.env` in any text editor (Notepad is fine) and paste this line exactly:
-   ```
-   EXPO_PUBLIC_API_URL=https://locked-in-production.up.railway.app
-   ```
-   Save and close the file.
-
-4. **Install dependencies** (run once):
-   ```
-   npm install
-   ```
-
-5. **Start the app:**
-   ```
-   npm start
-   ```
-   A QR code will appear in the terminal. Scan it with the Expo Go app on your phone. The app will open.
+No installs, no terminal, no setup. The app loads in your browser and connects to the live backend automatically.
 
 ---
 
-**Quick reference**
+**How it works**
 
 | | |
 |---|---|
-| Mobile folder | `mobile/` |
-| Install command | `npm install` |
-| Start command | `npm start` |
-| Env file to edit | `mobile/.env` |
-| Text to paste into `mobile/.env` | `EXPO_PUBLIC_API_URL=https://locked-in-production.up.railway.app` |
+| Frontend | Expo web app — deployed to GitHub Pages automatically on every push to `main` |
+| Backend | Express API — already running on Railway at `https://locked-in-production.up.railway.app` |
+| Trigger | Push to `main` → GitHub Actions builds the web app → goes live at the URL above |
+
+> **One-time setup for the repo owner:** Go to the repository **Settings → Pages → Source** and set it to **"GitHub Actions"**. After that, every push to `main` automatically re-deploys the app.
 
 ---
 
@@ -160,10 +135,9 @@ npx expo start                # opens Expo DevTools / QR code
 
 ### API Base URL Behavior
 - The mobile app reads `EXPO_PUBLIC_API_URL` at build time via Expo's public env system.
-- Default value in `mobile/.env.example` is `http://localhost:3000`.
-- **Physical device**: replace `localhost` with your machine's LAN IP (e.g. `http://192.168.1.x:3000`).
+- Default is `https://locked-in-production.up.railway.app` (the live Railway backend).
+- **Physical device / Expo Go**: if you want to point at a local server, set `EXPO_PUBLIC_API_URL` to your machine's LAN IP (e.g. `http://192.168.1.x:3000`).
 - **Android emulator**: use `http://10.0.2.2:3000`.
-- **Expo Go on same Wi-Fi**: use your machine's LAN IP.
 
 ### How Mobile Connects to the Backend
-The Axios client in `mobile/src/lib/` picks up `process.env.EXPO_PUBLIC_API_URL` and prefixes every request with it. Make sure the backend is running and reachable from the device/emulator before launching the app.
+The Axios client in `mobile/src/lib/api.ts` picks up `process.env.EXPO_PUBLIC_API_URL` and prefixes every request with it. The GitHub Actions deployment sets this to the Railway URL automatically — no `.env` file needed.
