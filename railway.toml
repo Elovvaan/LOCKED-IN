@@ -3,9 +3,7 @@ builder = "NIXPACKS"
 buildCommand = "npm install && npm run build"
 
 [deploy]
-# seed.js is idempotent: it only creates the demo user and SkillPost when they
-# do not already exist, so running it on every start is safe.
-startCommand = "node dist/seed.js && node dist/index.js"
+startCommand = "npm run start"
 healthcheckPath = "/health"
 healthcheckTimeout = 300
 restartPolicyType = "ON_FAILURE"
