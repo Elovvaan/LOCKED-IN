@@ -46,7 +46,7 @@ router.use(authMiddleware);
 // POST /skills - Publish a skill video to the feed
 router.post('/', async (req: AuthRequest, res: Response) => {
   try {
-    const { videoUrl, thumbnailUrl, title, caption, category } = req.body;
+    const { videoUrl, thumbnailUrl, title, caption, category, endsAt } = req.body;
     if (!videoUrl || !title) {
       return res.status(400).json({ error: 'videoUrl and title are required' });
     }
@@ -57,6 +57,7 @@ router.post('/', async (req: AuthRequest, res: Response) => {
       title,
       caption,
       category,
+      endsAt: endsAt ? new Date(endsAt) : undefined,
     });
     return res.status(201).json(post);
   } catch (err: any) {
@@ -198,6 +199,7 @@ router.post('/:id/respond', async (req: AuthRequest, res: Response) => {
 router.get('/:id/battle', async (req: AuthRequest, res: Response) => {
   try {
     const postId = parseInt(req.params.id);
+    const viewerId = req.user!.id;
     const post = await SkillPost.findByPk(postId);
     if (!post) return res.status(404).json({ error: 'SkillPost not found' });
 
@@ -205,10 +207,23 @@ router.get('/:id/battle', async (req: AuthRequest, res: Response) => {
     const battleResponses = allResponses.slice(0, 2);
     const currentLeader = await getCurrentLeader(postId);
 
+    // Determine if the viewing user has already voted in this battle
+    const existingVote = await SkillVote.findOne({ where: { skillPostId: postId, voterId: viewerId } });
+    const hasVoted = !!existingVote;
+    const userVotedFor: number | null = existingVote ? (existingVote.responseId ?? null) : null;
+
+    // Determine battle end state from endsAt field
+    const endsAt: Date | null = post.endsAt ? new Date(post.endsAt) : null;
+    const isEnded = endsAt ? new Date() >= endsAt : false;
+
     return res.json({
       battleResponses,
       currentLeader,
       isBattleReady: battleResponses.length >= 2,
+      hasVoted,
+      userVotedFor,
+      endsAt: endsAt ? endsAt.toISOString() : null,
+      isEnded,
     });
   } catch (err: any) {
     return res.status(500).json({ error: err.message });
@@ -317,6 +332,38 @@ router.post('/:id/create-event', async (req: AuthRequest, res: Response) => {
     });
 
     return res.status(201).json(event);
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /skills/:id/rematch - Create a new SkillPost as a rematch of an ended battle
+router.post('/:id/rematch', async (req: AuthRequest, res: Response) => {
+  try {
+    const postId = parseInt(req.params.id);
+    const { endsAt } = req.body;
+
+    const original = await SkillPost.findByPk(postId, {
+      include: [{ model: User, as: 'creator', attributes: ['id', 'username'] }],
+    });
+    if (!original) return res.status(404).json({ error: 'SkillPost not found' });
+
+    // Only allow rematch when the original battle has ended
+    if (original.endsAt && new Date() < new Date(original.endsAt)) {
+      return res.status(400).json({ error: 'Cannot rematch a battle that has not ended yet' });
+    }
+
+    const rematch = await SkillPost.create({
+      userId: req.user!.id,
+      videoUrl: original.videoUrl,
+      thumbnailUrl: original.thumbnailUrl,
+      title: original.title,
+      caption: original.caption,
+      category: original.category,
+      endsAt: endsAt ? new Date(endsAt) : undefined,
+    });
+
+    return res.status(201).json({ ...rematch.get({ plain: true }), rematchOf: postId });
   } catch (err: any) {
     return res.status(500).json({ error: err.message });
   }
