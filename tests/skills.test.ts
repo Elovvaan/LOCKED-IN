@@ -288,6 +288,37 @@ describe('Skills Routes', () => {
       expect(post.currentLeader.voteCount).toBeGreaterThan(0);
     });
 
+    it('should include isBattleReady=true when post has ≥2 responses', async () => {
+      const res = await request(app)
+        .get('/skills/feed')
+        .set('Authorization', `Bearer ${token1}`);
+
+      expect(res.status).toBe(200);
+      const post = res.body.find((p: any) => p.id === skillPostId);
+      expect(post).toBeDefined();
+      expect(post).toHaveProperty('isBattleReady');
+      // The post already has 2 responses created in earlier tests, so battle should be ready
+      expect(post.isBattleReady).toBe(true);
+    });
+
+    it('should include isBattleReady=false for a post with fewer than 2 responses', async () => {
+      // Create a brand-new skill post with no responses
+      const newPost = await request(app)
+        .post('/skills')
+        .set('Authorization', `Bearer ${token1}`)
+        .send({ videoUrl: 'https://example.com/new.mp4', title: 'No Responses Yet' });
+      expect(newPost.status).toBe(201);
+
+      const res = await request(app)
+        .get('/skills/feed')
+        .set('Authorization', `Bearer ${token1}`);
+
+      expect(res.status).toBe(200);
+      const post = res.body.find((p: any) => p.id === newPost.body.id);
+      expect(post).toBeDefined();
+      expect(post.isBattleReady).toBe(false);
+    });
+
     it('should support ?since= for polling (return only newer posts)', async () => {
       // Future timestamp - should return no posts
       const future = new Date(Date.now() + 60000).toISOString();

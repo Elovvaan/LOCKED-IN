@@ -33,7 +33,7 @@ export function useBattle(skillId: number) {
 
   useEffect(() => {
     load(false);
-    const interval = setInterval(() => load(true), 2500);
+    const interval = setInterval(() => load(true), 5000);
     return () => clearInterval(interval);
   }, [load]);
 

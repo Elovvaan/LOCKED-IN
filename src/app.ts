@@ -19,7 +19,10 @@ app.use(express.json());
 if (process.env.NODE_ENV !== 'test') {
   const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100, // limit each IP to 100 requests per windowMs
+    // 500 req / 15 min per IP supports continuous feed + battle polling
+    // (feed: ~4 req/min at 15 s intervals, battle: ~12 req/min at 5 s intervals)
+    // without triggering 429s for normal in-app activity
+    max: 500,
     standardHeaders: true,
     legacyHeaders: false,
   });
