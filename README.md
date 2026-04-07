@@ -1,6 +1,55 @@
 # LOCKED-IN
 REAL CHALLENGE GAME
 
+---
+
+## Run mobile app
+
+> **No coding experience needed.** Follow these steps exactly.
+
+**What you need first:**
+- [Node.js](https://nodejs.org/) installed (download the "LTS" version)
+- [Expo Go](https://expo.dev/go) app installed on your phone (free, from the App Store or Google Play)
+
+**Steps:**
+
+1. **Download the repo** — click the green "Code" button on GitHub and choose "Download ZIP", then unzip it. Or if you have Git: `git clone https://github.com/Elovvaan/LOCKED-IN.git`
+
+2. **Open a terminal in the `mobile` folder**
+   - On Mac: open Terminal, type `cd ` (with a space), then drag the `mobile` folder into the Terminal window and press Enter.
+   - On Windows: open the `mobile` folder in File Explorer, click the address bar, type `cmd`, and press Enter.
+
+3. **Set up the backend URL** — in the `mobile` folder, copy the file `.env.example` and rename the copy to `.env`. Open `.env` in any text editor (Notepad is fine) and paste this line exactly:
+   ```
+   EXPO_PUBLIC_API_URL=https://locked-in-production.up.railway.app
+   ```
+   Save and close the file.
+
+4. **Install dependencies** (run once):
+   ```
+   npm install
+   ```
+
+5. **Start the app:**
+   ```
+   npm start
+   ```
+   A QR code will appear in the terminal. Scan it with the Expo Go app on your phone. The app will open.
+
+---
+
+**Quick reference**
+
+| | |
+|---|---|
+| Mobile folder | `mobile/` |
+| Install command | `npm install` |
+| Start command | `npm start` |
+| Env file to edit | `mobile/.env` |
+| Text to paste into `mobile/.env` | `EXPO_PUBLIC_API_URL=https://locked-in-production.up.railway.app` |
+
+---
+
 ## Current Status
 
 ### V1 Backend — In Progress
