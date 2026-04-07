@@ -34,7 +34,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const username = await AsyncStorage.getItem('username');
         setState({
           token,
-          userId: userId ? parseInt(userId) : null,
+          userId: userId ? parseInt(userId, 10) : null,
           username,
           isLoading: false,
         });

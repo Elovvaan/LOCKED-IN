@@ -33,6 +33,7 @@ export function useBattle(skillId: number) {
       await load();
     } catch (e: any) {
       setError(e.response?.data?.error || e.message);
+      throw e;
     } finally {
       setVoting(false);
     }

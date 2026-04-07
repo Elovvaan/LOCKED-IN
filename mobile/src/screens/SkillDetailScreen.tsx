@@ -181,7 +181,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 8,
   },
-  battleButton: {},
+  battleButton: { backgroundColor: '#16a34a' },
   ctaText: { color: '#000', fontWeight: '700', fontSize: 14 },
   respondForm: {
     margin: 16,

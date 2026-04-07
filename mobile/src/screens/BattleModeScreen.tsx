@@ -31,8 +31,8 @@ export function BattleModeScreen() {
       await vote(responseId);
     } catch (e: any) {
       const status = e.response?.status;
-      if (status === 409) Alert.alert('Already Voted', 'You already voted in this battle.');
-      else if (status === 403) Alert.alert('Cannot Vote', 'Competitors cannot vote in their own battle.');
+      if (status === 409) Alert.alert('Already Voted', 'Your vote has already been recorded for this battle.');
+      else if (status === 403) Alert.alert('Cannot Vote', 'Competitors cannot vote in their own battle. Share with friends to get more votes!');
       else Alert.alert('Error', e.response?.data?.error || e.message);
     }
   }, [vote]);
