@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 import rateLimit from 'express-rate-limit';
 import authRoutes from './routes/auth';
 import eventRoutes from './routes/events';
@@ -18,6 +18,11 @@ if (process.env.NODE_ENV !== 'test') {
   });
   app.use(limiter);
 }
+
+// Health check — used by Railway and uptime monitors
+app.get('/health', (_req: Request, res: Response) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
 
 app.use('/auth', authRoutes);
 app.use('/events', eventRoutes);
