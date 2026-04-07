@@ -23,10 +23,10 @@ export class Event extends Model<EventAttributes, EventCreationAttributes> imple
   public id!: number;
   public creatorId!: number;
   public title!: string;
-  public description!: string;
-  public locationName!: string;
-  public lat!: number;
-  public lng!: number;
+  public description!: string | undefined;
+  public locationName!: string | undefined;
+  public lat!: number | undefined;
+  public lng!: number | undefined;
   public startTime!: Date;
   public endTime!: Date;
   public maxPlayers!: number;

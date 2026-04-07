@@ -170,12 +170,14 @@ router.post('/:id/vote', async (req: AuthRequest, res: Response) => {
       await EventResult.create({ eventId, winnerId, votes: 1 });
     }
 
-    // Update winner's eventsWon and locationWins
+    // Update winner's eventsWon and locationWins only when majority threshold is first crossed
     const winner = await User.findByPk(winnerId);
     if (winner) {
       const totalVotes = await EventVote.count({ where: { eventId, winnerId } });
       const totalParticipants = await EventParticipant.count({ where: { eventId } });
-      if (totalVotes > totalParticipants / 2) {
+      const majorityThreshold = Math.floor(totalParticipants / 2) + 1;
+      // Only update stats exactly when the majority threshold is reached (not on every subsequent vote)
+      if (totalVotes === majorityThreshold) {
         const locationWins = JSON.parse(winner.locationWins || '{}');
         const updates: any = { eventsWon: winner.eventsWon + 1 };
         if (event.locationName) {
