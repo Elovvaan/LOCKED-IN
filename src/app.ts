@@ -1,4 +1,5 @@
 import express, { Request, Response } from 'express';
+import cors from 'cors';
 import rateLimit from 'express-rate-limit';
 import authRoutes from './routes/auth';
 import eventRoutes from './routes/events';
@@ -6,6 +7,12 @@ import userRoutes from './routes/users';
 import skillRoutes from './routes/skills';
 
 const app = express();
+// All origins are allowed: this is a mobile-first API consumed by native Expo
+// clients that do not enforce browser CORS restrictions. Expo Web is also
+// supported without a fixed origin. If a web-only front-end is added later,
+// restrict origins via the CORS_ORIGIN environment variable.
+const allowedOrigin = process.env.CORS_ORIGIN;
+app.use(cors(allowedOrigin ? { origin: allowedOrigin } : undefined));
 app.use(express.json());
 
 // Rate limiting - skip in test environment
