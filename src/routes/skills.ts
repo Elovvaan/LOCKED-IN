@@ -194,6 +194,57 @@ router.post('/:id/respond', async (req: AuthRequest, res: Response) => {
   }
 });
 
+// GET /skills/:id/battle - Battle Mode: top 2 responses side-by-side with leader info
+router.get('/:id/battle', async (req: AuthRequest, res: Response) => {
+  try {
+    const postId = parseInt(req.params.id);
+    const post = await SkillPost.findByPk(postId);
+    if (!post) return res.status(404).json({ error: 'SkillPost not found' });
+
+    const allResponses = await getResponsesWithVotes(postId);
+    const battleResponses = allResponses.slice(0, 2);
+    const currentLeader = await getCurrentLeader(postId);
+
+    return res.json({
+      battleResponses,
+      currentLeader,
+      isBattleReady: battleResponses.length >= 2,
+    });
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /skills/:id/responses/:responseId/vote - Vote directly on a response in battle mode
+router.post('/:id/responses/:responseId/vote', async (req: AuthRequest, res: Response) => {
+  try {
+    const postId = parseInt(req.params.id);
+    const responseId = parseInt(req.params.responseId);
+    const voterId = req.user!.id;
+
+    const post = await SkillPost.findByPk(postId);
+    if (!post) return res.status(404).json({ error: 'SkillPost not found' });
+
+    const response = await SkillResponse.findOne({ where: { id: responseId, skillPostId: postId } });
+    if (!response) return res.status(404).json({ error: 'Response not found' });
+
+    const targetUserId = (response as any).userId;
+
+    const existingVote = await SkillVote.findOne({ where: { skillPostId: postId, voterId } });
+    if (existingVote) return res.status(409).json({ error: 'Already voted on this challenge' });
+
+    const competitorResponse = await SkillResponse.findOne({ where: { skillPostId: postId, userId: voterId } });
+    if (competitorResponse) {
+      return res.status(403).json({ error: 'Active competitors in this thread cannot vote' });
+    }
+
+    await SkillVote.create({ skillPostId: postId, responseId, voterId, targetUserId });
+    return res.status(201).json({ message: 'Vote recorded' });
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
 // POST /skills/:id/vote - Vote who won the thread
 router.post('/:id/vote', async (req: AuthRequest, res: Response) => {
   try {

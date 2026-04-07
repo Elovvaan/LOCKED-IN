@@ -370,4 +370,121 @@ describe('Skills Routes', () => {
       expect(res.status).toBe(401);
     });
   });
+
+  describe('GET /skills/:id/battle', () => {
+    it('should return battleResponses, currentLeader, and isBattleReady', async () => {
+      const res = await request(app)
+        .get(`/skills/${skillPostId}/battle`)
+        .set('Authorization', `Bearer ${token1}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body).toHaveProperty('battleResponses');
+      expect(res.body).toHaveProperty('currentLeader');
+      expect(res.body).toHaveProperty('isBattleReady');
+      expect(Array.isArray(res.body.battleResponses)).toBe(true);
+      // There are multiple responses posted so battle should be ready
+      expect(res.body.isBattleReady).toBe(true);
+      expect(res.body.battleResponses.length).toBe(2);
+      res.body.battleResponses.forEach((r: any) => {
+        expect(r).toHaveProperty('voteCount');
+        expect(r).toHaveProperty('isBattleMode');
+        expect(r.isBattleMode).toBe(true);
+      });
+    });
+
+    it('should return 404 for non-existent post', async () => {
+      const res = await request(app)
+        .get('/skills/99999/battle')
+        .set('Authorization', `Bearer ${token1}`);
+      expect(res.status).toBe(404);
+    });
+
+    it('should require auth', async () => {
+      const res = await request(app).get(`/skills/${skillPostId}/battle`);
+      expect(res.status).toBe(401);
+    });
+  });
+
+  describe('POST /skills/:id/responses/:responseId/vote', () => {
+    let newPostId: number;
+    let newResponseId: number;
+    let voterToken: string;
+    let responderToken: string;
+
+    beforeAll(async () => {
+      // Create a fresh post + response + voter for these tests
+      const creator = await request(app)
+        .post('/auth/register')
+        .send({ username: 'battlecreator', email: 'battlecreator@test.com', password: 'pass' });
+      const creatorToken = creator.body.token;
+
+      const responder = await request(app)
+        .post('/auth/register')
+        .send({ username: 'battleresponder', email: 'battleresponder@test.com', password: 'pass' });
+      responderToken = responder.body.token;
+
+      const voter = await request(app)
+        .post('/auth/register')
+        .send({ username: 'battlevoter', email: 'battlevoter@test.com', password: 'pass' });
+      voterToken = voter.body.token;
+
+      const postRes = await request(app)
+        .post('/skills')
+        .set('Authorization', `Bearer ${creatorToken}`)
+        .send({ videoUrl: 'https://example.com/battle.mp4', title: 'Battle Test Challenge' });
+      newPostId = postRes.body.id;
+
+      const responseRes = await request(app)
+        .post(`/skills/${newPostId}/respond`)
+        .set('Authorization', `Bearer ${responderToken}`)
+        .send({ videoUrl: 'https://example.com/battleresp.mp4', caption: 'Battle response' });
+      newResponseId = responseRes.body.id;
+    });
+
+    it('should allow a spectator to vote on a specific response', async () => {
+      const res = await request(app)
+        .post(`/skills/${newPostId}/responses/${newResponseId}/vote`)
+        .set('Authorization', `Bearer ${voterToken}`)
+        .send();
+
+      expect(res.status).toBe(201);
+      expect(res.body.message).toBe('Vote recorded');
+    });
+
+    it('should reject duplicate votes', async () => {
+      const res = await request(app)
+        .post(`/skills/${newPostId}/responses/${newResponseId}/vote`)
+        .set('Authorization', `Bearer ${voterToken}`)
+        .send();
+
+      expect(res.status).toBe(409);
+    });
+
+    it('should block the responder from voting', async () => {
+      const res = await request(app)
+        .post(`/skills/${newPostId}/responses/${newResponseId}/vote`)
+        .set('Authorization', `Bearer ${responderToken}`)
+        .send();
+
+      expect(res.status).toBe(403);
+    });
+
+    it('should return 404 for non-existent post', async () => {
+      const res = await request(app)
+        .post(`/skills/99999/responses/${newResponseId}/vote`)
+        .set('Authorization', `Bearer ${voterToken}`)
+        .send();
+
+      expect(res.status).toBe(404);
+    });
+
+    it('should return 404 for non-existent response', async () => {
+      const res = await request(app)
+        .post(`/skills/${newPostId}/responses/99999/vote`)
+        .set('Authorization', `Bearer ${voterToken}`)
+        .send();
+
+      expect(res.status).toBe(404);
+    });
+  });
 });
