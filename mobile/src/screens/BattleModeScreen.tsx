@@ -1,5 +1,5 @@
-import React, { useCallback } from 'react';
-import { View, StyleSheet, Alert } from 'react-native';
+import React, { useCallback, useState } from 'react';
+import { View, Text, StyleSheet, Alert, TouchableOpacity } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { useBattle } from '../hooks/useBattle';
 import { BattleHeader } from '../components/BattleHeader';
@@ -14,16 +14,20 @@ export function BattleModeScreen() {
   const route = useRoute<any>();
   const navigation = useNavigation<any>();
   const { id } = route.params;
-  const { data, loading, error, voting, vote, reload } = useBattle(id);
+  const { data, loading, error, pollError, voting, vote, reload } = useBattle(id);
+  const [rematchLoading, setRematchLoading] = useState(false);
 
   const handleRematch = useCallback(async () => {
+    if (rematchLoading) return;
+    setRematchLoading(true);
     try {
       const rematch = await createRematch(id);
       navigation.replace('BattleMode', { id: rematch.id });
     } catch (e: any) {
       Alert.alert('Error', e.response?.data?.error || e.message);
+      setRematchLoading(false);
     }
-  }, [id, navigation]);
+  }, [id, navigation, rematchLoading]);
 
   const handleVote = useCallback(async (responseId: number) => {
     try {
@@ -51,6 +55,21 @@ export function BattleModeScreen() {
         endsAt={endsAt}
         onBack={() => navigation.goBack()}
       />
+
+      {isEnded && currentLeader && (
+        <View style={styles.winnerBanner}>
+          <Text style={styles.winnerText}>🏆 Winner: @{currentLeader.username} · {currentLeader.voteCount} votes</Text>
+        </View>
+      )}
+
+      {pollError && (
+        <View style={styles.pollErrorBanner}>
+          <Text style={styles.pollErrorText}>Connection issue — showing last data</Text>
+          <TouchableOpacity onPress={reload}>
+            <Text style={styles.retryText}>Retry</Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
       {isBattleReady && left && right ? (
         <BattleSplit
@@ -80,13 +99,14 @@ export function BattleModeScreen() {
           }
         />
       ) : (
-        <ErrorState message="Not enough responses for battle mode yet." />
+        <ErrorState message="Battle not ready yet — needs at least 2 responses." />
       )}
 
       {isEnded && (
         <BattleResultOverlay
           winner={currentLeader ? { username: currentLeader.username, voteCount: currentLeader.voteCount } : null}
           onRematch={handleRematch}
+          rematchLoading={rematchLoading}
         />
       )}
     </View>
@@ -97,5 +117,37 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#000',
+  },
+  winnerBanner: {
+    backgroundColor: 'rgba(34,197,94,0.15)',
+    borderBottomWidth: 1,
+    borderBottomColor: '#22c55e',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    alignItems: 'center',
+  },
+  winnerText: {
+    color: '#22c55e',
+    fontWeight: '700',
+    fontSize: 13,
+  },
+  pollErrorBanner: {
+    backgroundColor: 'rgba(161,161,170,0.15)',
+    borderBottomWidth: 1,
+    borderBottomColor: '#444',
+    paddingVertical: 6,
+    paddingHorizontal: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  pollErrorText: {
+    color: '#a1a1aa',
+    fontSize: 12,
+  },
+  retryText: {
+    color: '#22c55e',
+    fontSize: 12,
+    fontWeight: '600',
   },
 });

@@ -5,6 +5,7 @@ import { FeedMeta } from './FeedMeta';
 import { ActionRail } from './ActionRail';
 import { LeaderBadge } from './LeaderBadge';
 import { LiveBadge } from './LiveBadge';
+import { Pill } from './Pill';
 
 const { height } = Dimensions.get('window');
 
@@ -17,14 +18,22 @@ interface Props {
 }
 
 export function FeedCard({ post, isActive, onRespond, onBattle, onProfile }: Props) {
-  const isLive = post.endsAt && new Date(post.endsAt) > new Date();
+  const isEnded = !!post.isEnded;
+  const isLiveBattle = !isEnded && !!post.currentLeader;
+  const isBattleReady = !!post.isBattleReady;
 
   return (
     <View style={styles.container}>
       <VideoStage uri={post.videoUrl} isActive={isActive} />
       <View style={styles.overlay}>
         <View style={styles.badges}>
-          {isLive && <LiveBadge />}
+          {isEnded ? (
+            <Pill label="Ended" color="#a1a1aa" />
+          ) : isLiveBattle ? (
+            <LiveBadge />
+          ) : isBattleReady ? (
+            <Pill label="⚔ Battle Ready" color="#22c55e" />
+          ) : null}
           {post.currentLeader && (
             <LeaderBadge
               username={post.currentLeader.username}
@@ -40,6 +49,7 @@ export function FeedCard({ post, isActive, onRespond, onBattle, onProfile }: Pro
         <ActionRail
           responseCount={post.responseCount || 0}
           voteCount={post.voteCount || 0}
+          battleReady={isBattleReady}
           onRespond={onRespond}
           onBattle={onBattle}
           onProfile={onProfile}
