@@ -100,11 +100,11 @@ router.get('/feed', async (req: AuthRequest, res: Response) => {
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     });
 
-    // Enrich each post with currentLeader for live vote badge
+    // Enrich each post with currentLeader for live vote badge and isBattleReady flag
     const enriched = await Promise.all(
       feed.map(async (post: any) => {
         const currentLeader = await getCurrentLeader(post.id);
-        return { ...post, currentLeader };
+        return { ...post, currentLeader, isBattleReady: Number(post.responseCount) >= 2 };
       })
     );
 
