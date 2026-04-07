@@ -1,7 +1,44 @@
 import { Router, Response } from 'express';
-import { literal } from 'sequelize';
+import { literal, fn, col, Op } from 'sequelize';
 import { authMiddleware, AuthRequest } from '../middleware/auth';
 import { SkillPost, SkillResponse, SkillVote, User, Event } from '../models';
+
+// Helper: returns the current leader (most-voted participant) for a skill thread
+async function getCurrentLeader(postId: number): Promise<{ userId: number; username: string; voteCount: number } | null> {
+  const rows = (await SkillVote.findAll({
+    where: { skillPostId: postId },
+    attributes: ['targetUserId', [fn('COUNT', col('SkillVote.id')), 'voteCount']],
+    group: ['targetUserId'],
+    order: [[fn('COUNT', col('SkillVote.id')), 'DESC']],
+    limit: 1,
+    raw: true,
+  })) as any[];
+  if (!rows.length) return null;
+  const leaderId: number = rows[0].targetUserId;
+  const voteCount: number = Number(rows[0].voteCount);
+  const user = await User.findByPk(leaderId, { attributes: ['id', 'username'] });
+  if (!user) return null;
+  return { userId: leaderId, username: (user as any).username, voteCount };
+}
+
+// Helper: fetch responses for a post sorted by per-response vote count with battle mode flags
+async function getResponsesWithVotes(postId: number): Promise<any[]> {
+  const responses = await SkillResponse.findAll({
+    where: { skillPostId: postId },
+    include: [{ model: User, as: 'responder', attributes: ['id', 'username'] }],
+    attributes: {
+      include: [
+        [literal('(SELECT COUNT(*) FROM skill_votes WHERE skill_votes.responseId = SkillResponse.id)'), 'voteCount'],
+      ],
+    },
+    order: [[literal('(SELECT COUNT(*) FROM skill_votes WHERE skill_votes.responseId = SkillResponse.id)'), 'DESC']],
+  });
+  return responses.map((r: any, idx: number) => ({
+    ...r.get({ plain: true }),
+    voteCount: Number(r.get({ plain: true }).voteCount),
+    isBattleMode: responses.length >= 2 && idx < 2,
+  }));
+}
 
 const router = Router();
 router.use(authMiddleware);
@@ -27,10 +64,19 @@ router.post('/', async (req: AuthRequest, res: Response) => {
   }
 });
 
-// GET /skills/feed - Vertical feed sorted by newest + engagement
+// GET /skills/feed - Vertical feed sorted by newest + engagement; supports ?since=<ISO> for polling
 router.get('/feed', async (req: AuthRequest, res: Response) => {
   try {
+    const whereClause: any = {};
+    if (req.query.since) {
+      const since = new Date(req.query.since as string);
+      if (!isNaN(since.getTime())) {
+        whereClause.createdAt = { [Op.gt]: since };
+      }
+    }
+
     const posts = await SkillPost.findAll({
+      where: whereClause,
       include: [
         { model: User, as: 'creator', attributes: ['id', 'username'] },
       ],
@@ -53,13 +99,21 @@ router.get('/feed', async (req: AuthRequest, res: Response) => {
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     });
 
-    return res.json(feed);
+    // Enrich each post with currentLeader for live vote badge
+    const enriched = await Promise.all(
+      feed.map(async (post: any) => {
+        const currentLeader = await getCurrentLeader(post.id);
+        return { ...post, currentLeader };
+      })
+    );
+
+    return res.json(enriched);
   } catch (err: any) {
     return res.status(500).json({ error: err.message });
   }
 });
 
-// GET /skills/:id - One SkillPost with responses, event links, thread stats
+// GET /skills/:id - Fetch a SkillPost with responses sorted by votes, battle mode, and current leader
 router.get('/:id', async (req: AuthRequest, res: Response) => {
   try {
     const postId = parseInt(req.params.id);
@@ -74,13 +128,10 @@ router.get('/:id', async (req: AuthRequest, res: Response) => {
     });
     if (!post) return res.status(404).json({ error: 'SkillPost not found' });
 
-    const responses = await SkillResponse.findAll({
-      where: { skillPostId: postId },
-      include: [{ model: User, as: 'responder', attributes: ['id', 'username'] }],
-      order: [['createdAt', 'ASC']],
-    });
-
     const plain = post.get({ plain: true }) as any;
+
+    // Responses sorted by per-response vote count (DESC) with battle mode flags
+    const responsesPlain = await getResponsesWithVotes(postId);
 
     // Find events spawned from this skill post (title matches)
     const eventLinks = await Event.findAll({
@@ -88,12 +139,29 @@ router.get('/:id', async (req: AuthRequest, res: Response) => {
       attributes: ['id', 'title', 'startTime', 'endTime', 'locationName', 'isPublic'],
     });
 
+    // Current leader: participant with the most votes in this thread
+    const currentLeader = await getCurrentLeader(postId);
+
     return res.json({
-      post: plain,
-      responses: responses.map((r: any) => r.get({ plain: true })),
+      post: { ...plain, currentLeader },
+      responses: responsesPlain,
       eventLinks: eventLinks.map((e: any) => e.get({ plain: true })),
-      stats: { responseCount: Number(plain.responseCount), voteCount: Number(plain.voteCount) },
+      stats: { responseCount: Number(plain.responseCount), voteCount: Number(plain.voteCount), currentLeader },
     });
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /skills/:id/responses - Responses sorted by vote count with battle mode flags
+router.get('/:id/responses', async (req: AuthRequest, res: Response) => {
+  try {
+    const postId = parseInt(req.params.id);
+    const post = await SkillPost.findByPk(postId);
+    if (!post) return res.status(404).json({ error: 'SkillPost not found' });
+
+    const responsesPlain = await getResponsesWithVotes(postId);
+    return res.json(responsesPlain);
   } catch (err: any) {
     return res.status(500).json({ error: err.message });
   }

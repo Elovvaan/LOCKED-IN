@@ -231,4 +231,47 @@ describe('Event Routes', () => {
       expect(res.status).toBe(403);
     });
   });
+
+  describe('GET /events/:id', () => {
+    it('should return full event detail with players, spectators, and media', async () => {
+      const res = await request(app)
+        .get(`/events/${eventId}`)
+        .set('Authorization', `Bearer ${token1}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body).toHaveProperty('event');
+      expect(res.body).toHaveProperty('players');
+      expect(res.body).toHaveProperty('spectators');
+      expect(res.body).toHaveProperty('media');
+      expect(res.body).toHaveProperty('voteResults');
+      expect(res.body).toHaveProperty('isEnded');
+
+      expect(Array.isArray(res.body.players)).toBe(true);
+      expect(Array.isArray(res.body.spectators)).toBe(true);
+      expect(Array.isArray(res.body.media)).toBe(true);
+
+      // token1 is a player
+      expect(res.body.players.length).toBeGreaterThan(0);
+      expect(res.body.players[0]).toHaveProperty('userId');
+      expect(res.body.players[0]).toHaveProperty('username');
+
+      // token2 is a spectator
+      expect(res.body.spectators.length).toBeGreaterThan(0);
+
+      // Media was uploaded in prior tests
+      expect(res.body.media.length).toBeGreaterThan(0);
+    });
+
+    it('should return 404 for non-existent event', async () => {
+      const res = await request(app)
+        .get('/events/99999')
+        .set('Authorization', `Bearer ${token1}`);
+      expect(res.status).toBe(404);
+    });
+
+    it('should require auth', async () => {
+      const res = await request(app).get(`/events/${eventId}`);
+      expect(res.status).toBe(401);
+    });
+  });
 });

@@ -270,4 +270,104 @@ describe('Skills Routes', () => {
       expect(res.body.postedSkills[0].title).toBe('360 No-Look Pass Challenge');
     });
   });
+
+  describe('GET /skills/feed - currentLeader and polling', () => {
+    it('should include currentLeader in each feed post', async () => {
+      const res = await request(app)
+        .get('/skills/feed')
+        .set('Authorization', `Bearer ${token1}`);
+
+      expect(res.status).toBe(200);
+      expect(Array.isArray(res.body)).toBe(true);
+      // The post has received votes (token3 voted for userId1), so currentLeader should be set
+      const post = res.body.find((p: any) => p.id === skillPostId);
+      expect(post).toBeDefined();
+      expect(post).toHaveProperty('currentLeader');
+      expect(post.currentLeader).not.toBeNull();
+      expect(post.currentLeader.userId).toBe(userId1);
+      expect(post.currentLeader.voteCount).toBeGreaterThan(0);
+    });
+
+    it('should support ?since= for polling (return only newer posts)', async () => {
+      // Future timestamp - should return no posts
+      const future = new Date(Date.now() + 60000).toISOString();
+      const res = await request(app)
+        .get(`/skills/feed?since=${encodeURIComponent(future)}`)
+        .set('Authorization', `Bearer ${token1}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body).toHaveLength(0);
+    });
+
+    it('should return posts created after ?since= timestamp', async () => {
+      // Past timestamp - should return all posts
+      const past = new Date(0).toISOString();
+      const res = await request(app)
+        .get(`/skills/feed?since=${encodeURIComponent(past)}`)
+        .set('Authorization', `Bearer ${token1}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe('GET /skills/:id - responses sorted by votes, battleMode, currentLeader', () => {
+    it('should return responses sorted by vote count with isBattleMode flags', async () => {
+      const res = await request(app)
+        .get(`/skills/${skillPostId}`)
+        .set('Authorization', `Bearer ${token1}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body.responses).toBeDefined();
+      // With 2+ responses the top 2 should be flagged as battleMode
+      const responses = res.body.responses;
+      if (responses.length >= 2) {
+        expect(responses[0].isBattleMode).toBe(true);
+        expect(responses[1].isBattleMode).toBe(true);
+      }
+      // Each response should have voteCount
+      responses.forEach((r: any) => {
+        expect(r).toHaveProperty('voteCount');
+      });
+    });
+
+    it('should return currentLeader in stats', async () => {
+      const res = await request(app)
+        .get(`/skills/${skillPostId}`)
+        .set('Authorization', `Bearer ${token1}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body.stats).toHaveProperty('currentLeader');
+      expect(res.body.stats.currentLeader).not.toBeNull();
+      expect(res.body.stats.currentLeader.userId).toBe(userId1);
+    });
+  });
+
+  describe('GET /skills/:id/responses', () => {
+    it('should return responses sorted by vote count with isBattleMode', async () => {
+      const res = await request(app)
+        .get(`/skills/${skillPostId}/responses`)
+        .set('Authorization', `Bearer ${token1}`);
+
+      expect(res.status).toBe(200);
+      expect(Array.isArray(res.body)).toBe(true);
+      res.body.forEach((r: any) => {
+        expect(r).toHaveProperty('voteCount');
+        expect(r).toHaveProperty('isBattleMode');
+        expect(r).toHaveProperty('responder');
+      });
+    });
+
+    it('should return 404 for non-existent post', async () => {
+      const res = await request(app)
+        .get('/skills/99999/responses')
+        .set('Authorization', `Bearer ${token1}`);
+      expect(res.status).toBe(404);
+    });
+
+    it('should require auth', async () => {
+      const res = await request(app).get(`/skills/${skillPostId}/responses`);
+      expect(res.status).toBe(401);
+    });
+  });
 });

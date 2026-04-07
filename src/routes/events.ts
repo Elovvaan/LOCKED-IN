@@ -56,7 +56,64 @@ router.get('/', async (req: AuthRequest, res: Response) => {
   }
 });
 
-// POST /events/:id/join
+// GET /events/:id - Full event detail with players, spectators, media, and vote results
+router.get('/:id', async (req: AuthRequest, res: Response) => {
+  try {
+    const eventId = parseInt(req.params.id);
+    const event = await Event.findByPk(eventId);
+    if (!event) return res.status(404).json({ error: 'Event not found' });
+
+    const participants = await EventParticipant.findAll({
+      where: { eventId },
+      include: [{ model: User, attributes: ['id', 'username'] }],
+    });
+
+    const players = participants
+      .filter((p: any) => p.role === 'player')
+      .map((p: any) => {
+        const plain = p.get({ plain: true });
+        return { id: plain.id, userId: plain.userId, status: plain.status, username: plain.User?.username };
+      });
+
+    const spectators = participants
+      .filter((p: any) => p.role === 'spectator')
+      .map((p: any) => {
+        const plain = p.get({ plain: true });
+        return { id: plain.id, userId: plain.userId, username: plain.User?.username };
+      });
+
+    const media = await EventMedia.findAll({
+      where: { eventId },
+      include: [{ model: User, attributes: ['id', 'username'] }],
+    });
+
+    const now = new Date();
+    const isEnded = new Date(event.endTime) < now;
+
+    let voteResults: any[] = [];
+    if (isEnded) {
+      const results = await EventResult.findAll({
+        where: { eventId },
+        include: [{ model: User, as: 'winner', attributes: ['id', 'username'] }],
+        order: [['votes', 'DESC']],
+      });
+      voteResults = results.map((r: any) => r.get({ plain: true }));
+    }
+
+    return res.json({
+      event: event.get({ plain: true }),
+      players,
+      spectators,
+      media: media.map((m: any) => m.get({ plain: true })),
+      voteResults,
+      isEnded,
+    });
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+
 router.post('/:id/join', async (req: AuthRequest, res: Response) => {
   try {
     const eventId = parseInt(req.params.id);

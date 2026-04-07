@@ -22,6 +22,8 @@ EventMedia.belongsTo(Event, { foreignKey: 'eventId' });
 
 Event.hasMany(EventResult, { foreignKey: 'eventId' });
 Event.hasMany(EventVote, { foreignKey: 'eventId' });
+EventResult.belongsTo(User, { foreignKey: 'winnerId', as: 'winner' });
+EventMedia.belongsTo(User, { foreignKey: 'userId' });
 
 // SkillPost associations
 User.hasMany(SkillPost, { foreignKey: 'userId' });
