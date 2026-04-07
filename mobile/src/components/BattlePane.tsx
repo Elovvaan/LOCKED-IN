@@ -27,9 +27,11 @@ export function BattlePane({ response, isLeader, isLoser, hasVoted, isEnded, vot
           {isLeader ? '👑 ' : ''}{response.responder?.username || 'unknown'}
         </Text>
         <Text style={styles.votes}>{response.voteCount || 0} votes</Text>
-        {!isEnded && !hasVoted && (
+        {isEnded ? (
+          <Text style={styles.votingClosed}>🔒 Voting closed</Text>
+        ) : !hasVoted ? (
           <VoteButton onPress={onVote} loading={voting} disabled={voting} />
-        )}
+        ) : null}
         {isVotedFor && <Text style={styles.votedLabel}>✓ Your vote</Text>}
       </View>
     </View>
@@ -74,6 +76,11 @@ const styles = StyleSheet.create({
   },
   votedLabel: {
     color: '#22c55e',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  votingClosed: {
+    color: '#a1a1aa',
     fontSize: 12,
     fontWeight: '600',
   },
