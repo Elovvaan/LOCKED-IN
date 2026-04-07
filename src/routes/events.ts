@@ -175,9 +175,14 @@ router.post('/:id/vote', async (req: AuthRequest, res: Response) => {
     if (winner) {
       const totalVotes = await EventVote.count({ where: { eventId, winnerId } });
       const totalParticipants = await EventParticipant.count({ where: { eventId } });
-      if (totalVotes > totalParticipants / 2 && event.locationName) {
+      if (totalVotes > totalParticipants / 2) {
         const locationWins = JSON.parse(winner.locationWins || '{}');
-        locationWins[event.locationName] = (locationWins[event.locationName] || 0) + 1;
+        const updates: any = { eventsWon: winner.eventsWon + 1 };
+        if (event.locationName) {
+          locationWins[event.locationName] = (locationWins[event.locationName] || 0) + 1;
+          updates.locationWins = JSON.stringify(locationWins);
+        }
+        await winner.update(updates);
       }
     }
 
