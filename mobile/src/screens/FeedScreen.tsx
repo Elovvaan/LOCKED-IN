@@ -1,5 +1,5 @@
 import React, { useCallback, useRef, useState } from 'react';
-import { FlatList, StyleSheet, Dimensions, ViewToken } from 'react-native';
+import { FlatList, StyleSheet, Dimensions, ViewToken, View, Text } from 'react-native';
 import { useFeed } from '../hooks/useFeed';
 import { FeedCard } from '../components/FeedCard';
 import { LoadingScreen } from '../components/LoadingScreen';
@@ -27,6 +27,15 @@ export function FeedScreen() {
 
   if (loading && !posts.length) return <LoadingScreen />;
   if (error && !posts.length) return <ErrorState message={error} onRetry={reload} />;
+  if (!loading && !error && posts.length === 0) {
+    return (
+      <SafeScreen style={styles.container}>
+        <View style={styles.emptyContainer}>
+          <Text style={styles.emptyText}>No skill posts yet. Be the first to post!</Text>
+        </View>
+      </SafeScreen>
+    );
+  }
 
   return (
     <SafeScreen style={styles.container}>
@@ -60,5 +69,16 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#000',
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  emptyText: {
+    color: '#a1a1aa',
+    fontSize: 16,
+    textAlign: 'center',
   },
 });

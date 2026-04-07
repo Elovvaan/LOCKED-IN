@@ -11,11 +11,14 @@ export function useFeed() {
     try {
       setLoading(true);
       const data = await fetchFeed();
+      if (__DEV__) console.log('[useFeed] API response:', JSON.stringify(data));
       setPosts(data);
       if (data.length > 0) lastSince.current = data[0].createdAt;
       setError(null);
     } catch (e: any) {
-      setError(e.response?.data?.error || e.message);
+      const msg = e.response?.data?.error || e.message;
+      if (__DEV__) console.warn('[useFeed] Error loading feed:', msg, e);
+      setError(msg);
     } finally {
       setLoading(false);
     }
