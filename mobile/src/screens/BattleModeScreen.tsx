@@ -1,10 +1,11 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ImageBackground } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { useBattle } from '../hooks/useBattle';
 import { LoadingScreen } from '../components/LoadingScreen';
 import { ErrorState } from '../components/ErrorState';
+import { MediaSurface } from '../components/MediaSurface';
 
 const topBg = 'https://images.unsplash.com/photo-1517963879433-6ad2b056d712?auto=format&fit=crop&w=900&q=80';
 const bottomBg = 'https://images.unsplash.com/photo-1599058917212-d750089bc07e?auto=format&fit=crop&w=900&q=80';
@@ -36,7 +37,7 @@ export function BattleModeScreen() {
 
       <TouchableOpacity style={styles.winningPill}><Text style={styles.winningText}>WINNING</Text></TouchableOpacity>
 
-      <ImageBackground source={{ uri: left?.videoUrl || topBg }} style={styles.half}>
+      <MediaSurface uri={left?.videoUrl || topBg} style={styles.half}>
         <View style={styles.overlay} />
         <View style={styles.sideActions}>
           {['share-social', 'chatbox', 'heart'].map(icon => (
@@ -46,16 +47,16 @@ export function BattleModeScreen() {
         <View style={styles.labelWrap}><Text style={styles.player}>PLAYER 01</Text><Text style={styles.name}>{(left?.username || 'LEX_FLUX').toUpperCase()}</Text></View>
         <Text style={styles.percentTop}>{leftPct}</Text>
         <TouchableOpacity style={styles.voteStrip} disabled={voting} onPress={() => left && vote(left.id)}><View style={[styles.voteFill, { width: leftPct }]} /></TouchableOpacity>
-      </ImageBackground>
+      </MediaSurface>
 
       <View style={styles.vsDiamond}><Text style={styles.vsText}>VS</Text></View>
 
-      <ImageBackground source={{ uri: right?.videoUrl || bottomBg }} style={styles.half}>
+      <MediaSurface uri={right?.videoUrl || bottomBg} style={styles.half}>
         <View style={styles.overlay} />
         <View style={styles.labelWrapBottom}><Text style={styles.player}>PLAYER 02</Text><Text style={styles.name}>{(right?.username || 'CORE_ZENITH').toUpperCase()}</Text></View>
         <Text style={styles.percentBottom}>{rightPct}</Text>
         <TouchableOpacity style={styles.voteStripBottom} disabled={voting} onPress={() => right && vote(right.id)}><View style={[styles.voteFillMuted, { width: rightPct }]} /></TouchableOpacity>
-      </ImageBackground>
+      </MediaSurface>
 
       <TouchableOpacity style={styles.back} onPress={() => navigation.goBack()}>
         <Ionicons name="arrow-back" size={24} color="#fff" />
