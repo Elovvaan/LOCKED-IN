@@ -193,4 +193,5 @@ Required secrets/vars:
 - `IOS_BUNDLE_IDENTIFIER`
 - `ANDROID_PACKAGE`
 - `APPLE_ID`, `ASC_APP_ID`, `APPLE_TEAM_ID` (iOS submit)
-- `google-play-service-account.json` at `mobile/google-play-service-account.json` (Android submit)
+- `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON` (raw JSON for Android submit service account)
+- Generate `mobile/google-play-service-account.json` with `npm run prepare:google-play-key` from `mobile/` before `eas submit --platform android`
