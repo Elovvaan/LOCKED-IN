@@ -167,3 +167,30 @@ npx expo start                # opens Expo DevTools / QR code
 
 ### How Mobile Connects to the Backend
 The Axios client in `mobile/src/lib/` picks up `process.env.EXPO_PUBLIC_API_URL` and prefixes every request with it. Make sure the backend is running and reachable from the device/emulator before launching the app.
+
+---
+
+## Mobile Release (EAS Build + Store Submission)
+
+From `mobile/`:
+
+1. Configure env values in `.env` (copy from `.env.example`).
+2. Log into Expo: `npx eas login`
+3. Link project and set credentials:
+   - `npx eas project:init` (if not already linked)
+   - `npx eas credentials`
+4. Build production binaries:
+   - iOS: `npx eas build --platform ios --profile production`
+   - Android: `npx eas build --platform android --profile production`
+5. Submit to stores:
+   - iOS: `npx eas submit --platform ios --profile production`
+   - Android: `npx eas submit --platform android --profile production`
+
+Required secrets/vars:
+- `EXPO_PUBLIC_API_URL`
+- `EXPO_OWNER`
+- `EAS_PROJECT_ID`
+- `IOS_BUNDLE_IDENTIFIER`
+- `ANDROID_PACKAGE`
+- `APPLE_ID`, `ASC_APP_ID`, `APPLE_TEAM_ID` (iOS submit)
+- `google-play-service-account.json` at `mobile/google-play-service-account.json` (Android submit)

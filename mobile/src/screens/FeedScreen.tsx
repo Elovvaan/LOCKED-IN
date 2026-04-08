@@ -6,7 +6,6 @@ import {
   ViewToken,
   View,
   Text,
-  ImageBackground,
   TouchableOpacity,
   Image,
 } from 'react-native';
@@ -16,6 +15,7 @@ import { useFeed } from '../hooks/useFeed';
 import { LoadingScreen } from '../components/LoadingScreen';
 import { ErrorState } from '../components/ErrorState';
 import { useNavigation } from '@react-navigation/native';
+import { MediaSurface } from '../components/MediaSurface';
 
 const { height } = Dimensions.get('window');
 
@@ -45,7 +45,7 @@ export function FeedScreen() {
         const pct = index % 2 === 0 ? '68%' : '32%';
         return (
           <View style={styles.slide}>
-            <ImageBackground source={{ uri: item.videoUrl || bg }} style={styles.video} resizeMode="cover">
+            <MediaSurface uri={item.videoUrl || bg} style={styles.video}>
               <LinearGradient colors={['rgba(0,0,0,0.4)', 'rgba(0,0,0,0.75)', '#000']} style={StyleSheet.absoluteFill} />
 
               <View style={styles.topRow}>
@@ -80,7 +80,7 @@ export function FeedScreen() {
                   <View style={[styles.progressFill, { width: pct }]} />
                 </View>
               </View>
-            </ImageBackground>
+            </MediaSurface>
           </View>
         );
       }}
