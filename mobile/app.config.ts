@@ -17,7 +17,8 @@ const required = {
   apiUrl: getEnv('EXPO_PUBLIC_API_URL', 'https://locked-in-production.up.railway.app'),
   owner: getEnv('EXPO_OWNER'),
   projectId: getEnv('EAS_PROJECT_ID'),
-  iosBundleIdentifier: getEnv('IOS_BUNDLE_IDENTIFIER'),
+  // iOS is deferred — fallback prevents crash on Android-only EAS builds.
+  iosBundleIdentifier: getEnv('IOS_BUNDLE_IDENTIFIER', 'com.lockedin.app'),
   androidPackage: getEnv('ANDROID_PACKAGE'),
 };
 
