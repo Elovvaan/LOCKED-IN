@@ -56,7 +56,7 @@ async function routeSettlement(assetId: number, amountMinor: number): Promise<{ 
     amountMinor: Math.floor((amountMinor * split.bps) / 10000),
   }));
   const delta = amountMinor - routed.reduce((sum, r) => sum + r.amountMinor, 0);
-  if (delta > 0 && routed[0]) routed[0].amountMinor += delta;
+  if (delta > 0 && routed.length > 0) routed[0].amountMinor += delta;
   return routed;
 }
 
