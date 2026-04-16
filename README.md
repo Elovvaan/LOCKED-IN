@@ -59,6 +59,7 @@ REAL CHALLENGE GAME
 - ✅ Users API (profile)
 - ✅ Skills API (posts, responses, votes)
 - ✅ Creator Revenue Chain Layer API (creator registry, asset registry, split routing, licensing, royalties, entitlements, vault payouts)
+- ✅ Sweepstakes Campaign Layer API (campaign rules, free-entry sources, winner logging, fulfillment tracking, audit logs)
 - ✅ Rate limiting (100 req / 15 min per IP)
 - ✅ Jest + Supertest test suite (in-memory SQLite)
 - ⬜ File/media storage (S3 or equivalent)
