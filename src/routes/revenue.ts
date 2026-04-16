@@ -17,6 +17,10 @@ router.use(authMiddleware);
 
 const DEFAULT_STABLECOIN = 'USDC';
 const DEFAULT_CHAIN = 'base';
+interface SplitInput {
+  recipientUserId: number;
+  bps: number;
+}
 
 const serviceContracts = {
   'identity-service': 'CreatorRegistry',
@@ -39,13 +43,15 @@ async function getOrCreateVault(creatorUserId: number): Promise<any> {
 async function routeSettlement(assetId: number, amountMinor: number): Promise<{ recipientUserId: number; amountMinor: number }[]> {
   const splits = await SplitRule.findAll({ where: { assetId } });
   if (!splits.length) {
-    const asset = await AssetRegistry.findByPk(assetId, { include: [{ association: 'creator' }] });
-    const creatorUserId = (asset as any)?.creator?.userId;
+    const asset = await AssetRegistry.findByPk(assetId);
+    if (!asset) return [];
+    const creator = await CreatorRegistry.findByPk(asset.creatorId);
+    const creatorUserId = creator?.userId;
     if (!creatorUserId) return [];
     return [{ recipientUserId: creatorUserId, amountMinor }];
   }
 
-  const routed = splits.map((split: any) => ({
+  const routed = splits.map((split) => ({
     recipientUserId: split.recipientUserId,
     amountMinor: Math.floor((amountMinor * split.bps) / 10000),
   }));
@@ -128,14 +134,16 @@ router.post('/assets', async (req: AuthRequest, res: Response) => {
       contractRef: 'AssetRegistry',
     });
 
-    const requestedSplits = Array.isArray(splits) ? splits : [{ recipientUserId: req.user!.id, bps: 10000 }];
-    const totalBps = requestedSplits.reduce((sum: number, s: any) => sum + Number(s.bps || 0), 0);
+    const requestedSplits: SplitInput[] = Array.isArray(splits)
+      ? splits.map((split: SplitInput) => ({ recipientUserId: Number(split.recipientUserId), bps: Number(split.bps) }))
+      : [{ recipientUserId: req.user!.id, bps: 10000 }];
+    const invalidSplit = requestedSplits.some((split) => !Number.isInteger(split.recipientUserId) || split.recipientUserId <= 0 || !Number.isInteger(split.bps) || split.bps <= 0);
+    if (invalidSplit) return res.status(400).json({ error: 'invalid split values' });
+    const totalBps = requestedSplits.reduce((sum: number, split) => sum + split.bps, 0);
     if (totalBps !== 10000) return res.status(400).json({ error: 'splits must total 10000 bps' });
 
     const splitRows = await Promise.all(
-      requestedSplits.map((s: any) =>
-        SplitRule.create({ assetId: asset.id, recipientUserId: s.recipientUserId, bps: Number(s.bps) })
-      )
+      requestedSplits.map((split) => SplitRule.create({ assetId: asset.id, recipientUserId: split.recipientUserId, bps: split.bps }))
     );
 
     await ProvenanceService.create({
