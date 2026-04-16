@@ -1,5 +1,6 @@
 import { SweepstakesCampaign, SweepstakesEntry, SweepstakesWinnerLog } from '../../models/Sweepstakes';
 import { AuditLogService } from './AuditLogService';
+import { randomInt } from 'crypto';
 
 export class WinnerDrawService {
   constructor(private readonly auditLogService: AuditLogService) {}
@@ -18,7 +19,7 @@ export class WinnerDrawService {
       throw new Error('Cannot draw winner without entries');
     }
 
-    const winnerEntry = entries[Math.floor(Math.random() * entries.length)];
+    const winnerEntry = entries[randomInt(entries.length)];
     const winnerLog = await SweepstakesWinnerLog.create({
       campaignId: campaign.id,
       winnerUserId: winnerEntry.userId,

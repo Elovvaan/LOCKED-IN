@@ -5,7 +5,8 @@ export class RulesService {
     const required = ['title', 'officialRules', 'eligibility', 'startsAt', 'endsAt', 'prizeDetails', 'freeAlternateMethod'];
     const missing = required.filter((field) => !payload[field]);
     if (missing.length > 0) {
-      throw new Error(`${missing.join(', ')} are required`);
+      const verb = missing.length === 1 ? 'is' : 'are';
+      throw new Error(`${missing.join(', ')} ${verb} required`);
     }
 
     const startsAt = new Date(payload.startsAt);
