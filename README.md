@@ -58,6 +58,7 @@ REAL CHALLENGE GAME
 - ✅ Events API (create, join, vote, media upload)
 - ✅ Users API (profile)
 - ✅ Skills API (posts, responses, votes)
+- ✅ Creator Revenue Chain Layer API (creator registry, asset registry, split routing, licensing, royalties, entitlements, vault payouts)
 - ✅ Rate limiting (100 req / 15 min per IP)
 - ✅ Jest + Supertest test suite (in-memory SQLite)
 - ⬜ File/media storage (S3 or equivalent)
@@ -135,6 +136,30 @@ Copy to `mobile/.env` before starting the Expo app.
 | M4 | Complete profile edit flow (avatar + bio) |
 | M5 | Push notifications for event results |
 | M6 | Public TestFlight / Play Store beta |
+
+---
+
+## Creator Revenue Chain Layer
+
+The app keeps media/content **off-chain** and mirrors rights + settlement state in the API database to represent the on-chain layer for fast UI/analytics.
+
+- Off-chain concerns: content storage, analytics, feeds/ranking, private context, app business logic
+- On-chain mirrored state: creator registry, asset registry, split routing, license state, royalty rules, treasury vaults, entitlement records
+- Settlement defaults: **USDC** on **Base** with embedded-wallet-style UX
+
+Key endpoints (auth required):
+
+- `GET /revenue/config`
+- `POST /revenue/creators/register`
+- `POST /revenue/assets`
+- `POST /revenue/tips`
+- `POST /revenue/subscriptions`
+- `POST /revenue/unlock`
+- `POST /revenue/licenses`
+- `POST /revenue/royalties/resale`
+- `POST /revenue/payouts`
+- `GET /revenue/vaults/me`
+- `GET /revenue/entitlements/me`
 
 ---
 

@@ -5,6 +5,7 @@ import authRoutes from './routes/auth';
 import eventRoutes from './routes/events';
 import userRoutes from './routes/users';
 import skillRoutes from './routes/skills';
+import revenueRoutes from './routes/revenue';
 
 const app = express();
 // All origins are allowed: this is a mobile-first API consumed by native Expo
@@ -38,5 +39,6 @@ app.use('/auth', authRoutes);
 app.use('/events', eventRoutes);
 app.use('/users', userRoutes);
 app.use('/skills', skillRoutes);
+app.use('/revenue', revenueRoutes);
 
 export default app;
