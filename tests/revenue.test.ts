@@ -15,14 +15,17 @@ beforeAll(async () => {
   await sequelize.sync({ force: true });
 
   const creator = await request(app).post('/auth/register').send({ username: 'creator', email: 'creator@test.com', password: 'CreatorPass123!' });
+  expect(creator.status).toBe(201);
   creatorToken = creator.body.token;
   creatorId = creator.body.user.id;
 
   const collaborator = await request(app).post('/auth/register').send({ username: 'collaborator', email: 'collab@test.com', password: 'CollabPass123!' });
+  expect(collaborator.status).toBe(201);
   collaboratorToken = collaborator.body.token;
   collaboratorId = collaborator.body.user.id;
 
   const fan = await request(app).post('/auth/register').send({ username: 'fan', email: 'fan@test.com', password: 'FanPass123!' });
+  expect(fan.status).toBe(201);
   fanToken = fan.body.token;
 
   await request(app).post('/revenue/creators/register').set('Authorization', `Bearer ${creatorToken}`).send({ walletAddress: 'embedded_creator_wallet' });
