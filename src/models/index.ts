@@ -8,6 +8,17 @@ import EventVote from './EventVote';
 import SkillPost from './SkillPost';
 import SkillResponse from './SkillResponse';
 import SkillVote from './SkillVote';
+import {
+  CreatorRegistry,
+  AssetRegistry,
+  SplitRule,
+  LicenseManager,
+  RoyaltyManager,
+  CreatorVault,
+  EntitlementPass,
+  ProvenanceService,
+  SettlementService,
+} from './CreatorRevenue';
 
 // Associations
 User.hasMany(Event, { foreignKey: 'creatorId' });
@@ -36,4 +47,56 @@ SkillResponse.belongsTo(User, { foreignKey: 'userId', as: 'responder' });
 SkillPost.hasMany(SkillVote, { foreignKey: 'skillPostId' });
 SkillVote.belongsTo(SkillPost, { foreignKey: 'skillPostId' });
 
-export { sequelize, User, Event, EventParticipant, EventMedia, EventResult, EventVote, SkillPost, SkillResponse, SkillVote };
+// Creator revenue layer associations
+User.hasOne(CreatorRegistry, { foreignKey: 'userId' });
+CreatorRegistry.belongsTo(User, { foreignKey: 'userId' });
+
+User.hasOne(CreatorVault, { foreignKey: 'creatorUserId' });
+CreatorVault.belongsTo(User, { foreignKey: 'creatorUserId' });
+
+CreatorRegistry.hasMany(AssetRegistry, { foreignKey: 'creatorId' });
+AssetRegistry.belongsTo(CreatorRegistry, { foreignKey: 'creatorId', as: 'creator' });
+
+AssetRegistry.hasMany(SplitRule, { foreignKey: 'assetId' });
+SplitRule.belongsTo(AssetRegistry, { foreignKey: 'assetId' });
+SplitRule.belongsTo(User, { foreignKey: 'recipientUserId', as: 'recipient' });
+
+AssetRegistry.hasMany(LicenseManager, { foreignKey: 'assetId' });
+LicenseManager.belongsTo(AssetRegistry, { foreignKey: 'assetId' });
+
+AssetRegistry.hasMany(RoyaltyManager, { foreignKey: 'assetId' });
+RoyaltyManager.belongsTo(AssetRegistry, { foreignKey: 'assetId' });
+
+AssetRegistry.hasMany(EntitlementPass, { foreignKey: 'assetId' });
+EntitlementPass.belongsTo(AssetRegistry, { foreignKey: 'assetId' });
+EntitlementPass.belongsTo(User, { foreignKey: 'userId' });
+
+AssetRegistry.hasMany(ProvenanceService, { foreignKey: 'assetId' });
+ProvenanceService.belongsTo(AssetRegistry, { foreignKey: 'assetId' });
+ProvenanceService.belongsTo(User, { foreignKey: 'actorUserId', as: 'actor' });
+
+AssetRegistry.hasMany(SettlementService, { foreignKey: 'assetId' });
+SettlementService.belongsTo(AssetRegistry, { foreignKey: 'assetId' });
+SettlementService.belongsTo(User, { foreignKey: 'payerUserId', as: 'payer' });
+
+export {
+  sequelize,
+  User,
+  Event,
+  EventParticipant,
+  EventMedia,
+  EventResult,
+  EventVote,
+  SkillPost,
+  SkillResponse,
+  SkillVote,
+  CreatorRegistry,
+  AssetRegistry,
+  SplitRule,
+  LicenseManager,
+  RoyaltyManager,
+  CreatorVault,
+  EntitlementPass,
+  ProvenanceService,
+  SettlementService,
+};
