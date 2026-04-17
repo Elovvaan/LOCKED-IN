@@ -19,6 +19,22 @@ const allowedOrigin = process.env.CORS_ORIGIN;
 app.use(cors(allowedOrigin ? { origin: allowedOrigin } : undefined));
 app.use(express.json());
 
+const apiManifest = {
+  api: 'LOCKED-IN',
+  version: '1.0.0',
+  status: 'ok',
+  endpoints: [
+    'GET  /health',
+    'POST /auth/register',
+    'POST /auth/login',
+    'GET  /events',
+    'POST /events',
+    'GET  /users/:id/profile',
+    'GET  /skills',
+    'POST /skills',
+  ],
+};
+
 // Rate limiting - skip in test environment
 if (process.env.NODE_ENV !== 'test') {
   const limiter = rateLimit({
@@ -33,38 +49,30 @@ if (process.env.NODE_ENV !== 'test') {
   app.use(limiter);
 }
 
-// Root — returns API manifest so the Railway URL shows something meaningful in a browser
-app.get('/', (_req: Request, res: Response) => {
-  res.json({
-    api: 'LOCKED-IN',
-    version: '1.0.0',
-    status: 'ok',
-    endpoints: [
-      'GET  /health',
-      'POST /auth/register',
-      'POST /auth/login',
-      'GET  /events',
-      'POST /events',
-      'GET  /users/:id/profile',
-      'GET  /skills',
-      'POST /skills',
-    ],
-  });
-});
-
 // Health check — used by Railway and uptime monitors
 app.get('/health', (_req: Request, res: Response) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-const frontendDistDir = process.env.FRONTEND_DIST_DIR || path.resolve(__dirname, '../mobile/dist');
-const frontendIndexPath = path.join(frontendDistDir, 'index.html');
-const hasFrontendBuild = existsSync(frontendIndexPath);
+const defaultFrontendDistDir = path.resolve(__dirname, '../mobile/dist');
+const frontendDistDir =
+  process.env.FRONTEND_DIST_DIR || (process.env.NODE_ENV === 'test' ? '' : defaultFrontendDistDir);
+const frontendIndexPath = frontendDistDir ? path.join(frontendDistDir, 'index.html') : '';
+const hasFrontendBuild = frontendDistDir ? existsSync(frontendIndexPath) : false;
 const apiPrefixes = ['/auth', '/events', '/users', '/skills', '/revenue', '/sweepstakes', '/health'];
 
 if (hasFrontendBuild) {
   app.use(express.static(frontendDistDir));
+} else {
+  // Root falls back to API manifest when no web frontend build is available.
+  app.get('/', (_req: Request, res: Response) => {
+    res.json(apiManifest);
+  });
 }
+
+app.get('/api', (_req: Request, res: Response) => {
+  res.json(apiManifest);
+});
 
 app.use('/auth', authRoutes);
 app.use('/events', eventRoutes);

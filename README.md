@@ -173,6 +173,7 @@ No installs, no terminal, no setup. The app loads in your browser and connects t
 The backend serves the real LOCKED-IN frontend (Expo web export from `mobile/`) at `/`.
 
 - **Frontend root**: `/`
+- **API manifest**: `/api`
 - **SPA routes**: fallback to frontend `index.html`
 - **Health check**: `/health`
 
