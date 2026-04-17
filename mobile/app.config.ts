@@ -15,11 +15,11 @@ const getEnv = (name: string, fallback?: string) => {
 
 const required = {
   apiUrl: getEnv('EXPO_PUBLIC_API_URL', 'https://locked-in-production.up.railway.app'),
-  owner: getEnv('EXPO_OWNER'),
-  projectId: getEnv('EAS_PROJECT_ID'),
-  // iOS is deferred — fallback prevents crash on Android-only EAS builds.
+  // EAS-only vars — optional during web/GitHub Pages builds
+  owner: getEnv('EXPO_OWNER', ''),
+  projectId: getEnv('EAS_PROJECT_ID', ''),
   iosBundleIdentifier: getEnv('IOS_BUNDLE_IDENTIFIER', 'com.lockedin.app'),
-  androidPackage: getEnv('ANDROID_PACKAGE'),
+  androidPackage: getEnv('ANDROID_PACKAGE', 'com.lockedin.app'),
 };
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
@@ -64,6 +64,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   },
   web: {
     favicon: './assets/favicon.png',
+    bundler: 'metro',
+    output: 'static',
   },
   extra: {
     apiUrl: required.apiUrl,
