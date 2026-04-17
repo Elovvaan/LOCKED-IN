@@ -14,6 +14,13 @@ afterAll(async () => {
 });
 
 describe('Frontend static serving', () => {
+  it('GET /api should return API manifest even when frontend is enabled', async () => {
+    const res = await request(app).get('/api');
+    expect(res.status).toBe(200);
+    expect(res.headers['content-type']).toContain('application/json');
+    expect(res.body.api).toBe('LOCKED-IN');
+  });
+
   it('GET / should render frontend index.html', async () => {
     const res = await request(app).get('/');
     expect(res.status).toBe(200);
