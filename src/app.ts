@@ -55,10 +55,11 @@ app.get('/health', (_req: Request, res: Response) => {
 });
 
 const defaultFrontendDistDir = path.resolve(__dirname, '../mobile/dist');
+// In tests we only serve frontend files when explicitly pointed at a fixture.
 const frontendDistDir =
   process.env.FRONTEND_DIST_DIR || (process.env.NODE_ENV === 'test' ? '' : defaultFrontendDistDir);
-const frontendIndexPath = frontendDistDir ? path.join(frontendDistDir, 'index.html') : '';
-const hasFrontendBuild = frontendDistDir ? existsSync(frontendIndexPath) : false;
+const hasFrontendBuild = Boolean(frontendDistDir) && existsSync(path.join(frontendDistDir, 'index.html'));
+const frontendIndexPath = hasFrontendBuild ? path.join(frontendDistDir, 'index.html') : '';
 const apiPrefixes = ['/auth', '/events', '/users', '/skills', '/revenue', '/sweepstakes', '/health'];
 
 if (hasFrontendBuild) {
