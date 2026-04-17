@@ -176,6 +176,7 @@ The backend serves the real LOCKED-IN frontend (Expo web export from `mobile/`) 
 - **API manifest**: `/api`
 - **SPA routes**: fallback to frontend `index.html`
 - **Health check**: `/health`
+- **Build pipeline**: `npm run build` runs `npm run build:backend` and `npm run build:frontend` (Expo export to `mobile/dist/`)
 
 ---
 
