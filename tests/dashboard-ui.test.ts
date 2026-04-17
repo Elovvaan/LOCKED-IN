@@ -1,5 +1,5 @@
 process.env.NODE_ENV = 'test';
-process.env.FRONTEND_DIST_DIR = '/home/runner/work/LOCKED-IN/LOCKED-IN/tests/fixtures/frontend-dist';
+process.env.FRONTEND_DIST_DIR = `${__dirname}/fixtures/frontend-dist`;
 
 import request from 'supertest';
 import app from '../src/app';
