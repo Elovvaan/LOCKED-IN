@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 interface Props {
   responseCount: number;
   voteCount: number;
+  battleReady?: boolean;
   onRespond?: () => void;
   onBattle?: () => void;
   onEvent?: () => void;
@@ -12,11 +13,11 @@ interface Props {
   onProfile?: () => void;
 }
 
-export function ActionRail({ responseCount, voteCount, onRespond, onBattle, onEvent, onShare, onProfile }: Props) {
+export function ActionRail({ responseCount, voteCount, battleReady, onRespond, onBattle, onEvent, onShare, onProfile }: Props) {
   return (
     <View style={styles.container}>
       <ActionItem icon="videocam-outline" label={String(responseCount)} onPress={onRespond} />
-      <ActionItem icon="flash-outline" label="Battle" onPress={onBattle} />
+      <ActionItem icon="flash-outline" label="Battle" onPress={onBattle} dimmed={battleReady === false} />
       <ActionItem icon="calendar-outline" label={String(voteCount)} onPress={onEvent} />
       <ActionItem icon="share-social-outline" label="Share" onPress={onShare} />
       <ActionItem icon="person-circle-outline" label="Profile" onPress={onProfile} />
@@ -24,11 +25,11 @@ export function ActionRail({ responseCount, voteCount, onRespond, onBattle, onEv
   );
 }
 
-function ActionItem({ icon, label, onPress }: { icon: keyof typeof Ionicons.glyphMap; label: string; onPress?: () => void }) {
+function ActionItem({ icon, label, onPress, dimmed }: { icon: keyof typeof Ionicons.glyphMap; label: string; onPress?: () => void; dimmed?: boolean }) {
   return (
-    <TouchableOpacity style={styles.item} onPress={onPress} activeOpacity={0.7}>
-      <Ionicons name={icon} size={30} color="#fff" />
-      <Text style={styles.label}>{label}</Text>
+    <TouchableOpacity style={styles.item} onPress={onPress} activeOpacity={dimmed ? 0.5 : 0.7} disabled={!!dimmed}>
+      <Ionicons name={icon} size={30} color={dimmed ? '#555' : '#fff'} />
+      <Text style={[styles.label, dimmed && styles.dimmedLabel]}>{label}</Text>
     </TouchableOpacity>
   );
 }
@@ -49,5 +50,8 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 11,
     fontWeight: '600',
+  },
+  dimmedLabel: {
+    color: '#555',
   },
 });

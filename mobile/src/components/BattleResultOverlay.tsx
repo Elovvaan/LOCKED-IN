@@ -1,12 +1,13 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 
 interface Props {
   winner: { username: string; voteCount: number } | null;
   onRematch?: () => void;
+  rematchLoading?: boolean;
 }
 
-export function BattleResultOverlay({ winner, onRematch }: Props) {
+export function BattleResultOverlay({ winner, onRematch, rematchLoading }: Props) {
   return (
     <View style={styles.overlay}>
       <View style={styles.card}>
@@ -15,8 +16,17 @@ export function BattleResultOverlay({ winner, onRematch }: Props) {
         <Text style={styles.username}>@{winner?.username || 'Unknown'}</Text>
         <Text style={styles.votes}>{winner?.voteCount || 0} votes</Text>
         {onRematch && (
-          <TouchableOpacity style={styles.rematch} onPress={onRematch}>
-            <Text style={styles.rematchText}>Request Rematch</Text>
+          <TouchableOpacity
+            style={[styles.rematch, rematchLoading && styles.rematchLoading]}
+            onPress={onRematch}
+            disabled={rematchLoading}
+            activeOpacity={0.8}
+          >
+            {rematchLoading ? (
+              <ActivityIndicator size="small" color="#000" />
+            ) : (
+              <Text style={styles.rematchText}>Request Rematch</Text>
+            )}
           </TouchableOpacity>
         )}
       </View>
@@ -62,10 +72,15 @@ const styles = StyleSheet.create({
   },
   rematch: {
     marginTop: 12,
+    alignItems: 'center',
+    minWidth: 160,
     backgroundColor: '#22c55e',
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 8,
+  },
+  rematchLoading: {
+    opacity: 0.7,
   },
   rematchText: {
     color: '#000',
