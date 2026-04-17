@@ -50,6 +50,23 @@ REAL CHALLENGE GAME
 
 ---
 
+## Web Dashboard (Railway-ready)
+
+The backend now serves a minimal browser UI so the deployed app is immediately visible at the root URL.
+
+- **Root dashboard**: `/`
+- **Sweepstakes dashboard**: `/sweepstakes` (also available at `/sweepstakes/campaigns`)
+- **Revenue dashboard**: `/dashboard/revenue`
+- **Health check**: `/health`
+
+### Test deployed app in browser
+
+1. Open your Railway URL (example: `https://locked-in-production.up.railway.app/`) — it should render the **LOCKED-IN** dashboard instead of `Cannot GET /`.
+2. Use the Quick Links and Test Flow buttons to navigate core flows.
+3. For protected endpoints, paste a JWT token into the dashboard token field; otherwise the UI will show **endpoint live but auth required** when it receives `401/403`.
+
+---
+
 ## Current Status
 
 ### V1 Backend — In Progress
