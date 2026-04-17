@@ -176,7 +176,7 @@ The backend serves the real LOCKED-IN frontend (Expo web export from `mobile/`) 
 - **API manifest**: `/api`
 - **SPA routes**: fallback to frontend `index.html`
 - **Health check**: `/health`
-- **Build pipeline**: `npm run build` runs `npm run build:backend` and `npm run build:frontend` (Expo export to `mobile/dist/`)
+- **Build pipeline**: `npm run build` runs both `npm run build:backend` (backend TypeScript build to `dist/`) and `npm run build:frontend` (Expo web export to `mobile/dist/`). This is the same behavior to expect for local/dev builds as well.
 
 ---
 
