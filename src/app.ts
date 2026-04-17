@@ -5,7 +5,7 @@ import authRoutes from './routes/auth';
 import eventRoutes from './routes/events';
 import userRoutes from './routes/users';
 import skillRoutes from './routes/skills';
-import dashboardRoutes from './routes/dashboard';
+import { registerDashboardRoutes } from './routes/dashboard';
 import revenueRoutes from './routes/revenue';
 
 const app = express();
@@ -36,7 +36,7 @@ app.get('/health', (_req: Request, res: Response) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-app.use('/', dashboardRoutes);
+registerDashboardRoutes(app);
 app.use('/auth', authRoutes);
 app.use('/events', eventRoutes);
 app.use('/users', userRoutes);

@@ -21,8 +21,8 @@ describe('Dashboard UI routes', () => {
     expect(res.text).toContain('Test Flow');
   });
 
-  it('GET /sweepstakes/campaigns should render sweepstakes dashboard HTML', async () => {
-    const res = await request(app).get('/sweepstakes/campaigns');
+  it('GET /dashboard/sweepstakes should render sweepstakes dashboard HTML', async () => {
+    const res = await request(app).get('/dashboard/sweepstakes');
     expect(res.status).toBe(200);
     expect(res.headers['content-type']).toContain('text/html');
     expect(res.text).toContain('Create Sweepstakes Campaign');

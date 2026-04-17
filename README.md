@@ -55,7 +55,7 @@ REAL CHALLENGE GAME
 The backend now serves a minimal browser UI so the deployed app is immediately visible at the root URL.
 
 - **Root dashboard**: `/`
-- **Sweepstakes dashboard**: `/sweepstakes` (also available at `/sweepstakes/campaigns`)
+- **Sweepstakes dashboard**: `/dashboard/sweepstakes`
 - **Revenue dashboard**: `/dashboard/revenue`
 - **Health check**: `/health`
 

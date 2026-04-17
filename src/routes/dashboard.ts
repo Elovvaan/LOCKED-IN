@@ -1,6 +1,4 @@
-import { Router, Request, Response } from 'express';
-
-const router = Router();
+import { Express, Request, Response } from 'express';
 
 function pageShell(title: string, body: string, script = ''): string {
   return `<!doctype html>
@@ -55,7 +53,7 @@ const rootBody = `
     <a class="btn alt" href="/sweepstakes/campaigns">/sweepstakes/campaigns</a>
     <a class="btn alt" href="/revenue/vaults/me">/revenue/vaults/me</a>
     <a class="btn alt" href="/revenue/assets">/revenue/assets</a>
-    <a class="btn" href="/sweepstakes">Sweepstakes Dashboard</a>
+    <a class="btn" href="/dashboard/sweepstakes">Sweepstakes Dashboard</a>
     <a class="btn" href="/dashboard/revenue">Revenue Dashboard</a>
   </section>
 
@@ -70,10 +68,10 @@ const rootBody = `
 
   <section class="card" style="margin-top:12px;">
     <h2>Test Flow</h2>
-    <a class="btn" href="/sweepstakes#create">Create Sweepstakes Campaign</a>
-    <a class="btn" href="/sweepstakes#entry">Add Free Entry</a>
-    <a class="btn" href="/sweepstakes#draw">Draw Winner</a>
-    <a class="btn" href="/sweepstakes#audit">View Audit Logs</a>
+    <a class="btn" href="/dashboard/sweepstakes#create">Create Sweepstakes Campaign</a>
+    <a class="btn" href="/dashboard/sweepstakes#entry">Add Free Entry</a>
+    <a class="btn" href="/dashboard/sweepstakes#draw">Draw Winner</a>
+    <a class="btn" href="/dashboard/sweepstakes#audit">View Audit Logs</a>
   </section>
 
   <section class="card" style="margin-top:12px;">
@@ -220,7 +218,7 @@ const sweepstakesScript = `
   });
 
   document.getElementById('load-campaigns').addEventListener('click', async () => {
-    const res = await callApi('GET', '/sweepstakes/campaigns/list');
+    const res = await callApi('GET', '/sweepstakes/campaigns');
     setOutput('Load campaigns', res);
   });
 
@@ -335,20 +333,16 @@ const revenueScript = `
   });
 `;
 
-router.get('/', (_req: Request, res: Response) => {
-  res.type('html').send(pageShell('LOCKED-IN', rootBody, rootScript));
-});
+export function registerDashboardRoutes(app: Express): void {
+  app.get('/', (_req: Request, res: Response) => {
+    res.type('html').send(pageShell('LOCKED-IN', rootBody, rootScript));
+  });
 
-router.get('/sweepstakes', (_req: Request, res: Response) => {
-  res.type('html').send(pageShell('LOCKED-IN Sweepstakes', sweepstakesBody, sweepstakesScript));
-});
+  app.get('/dashboard/sweepstakes', (_req: Request, res: Response) => {
+    res.type('html').send(pageShell('LOCKED-IN Sweepstakes', sweepstakesBody, sweepstakesScript));
+  });
 
-router.get('/sweepstakes/campaigns', (_req: Request, res: Response) => {
-  res.type('html').send(pageShell('LOCKED-IN Sweepstakes', sweepstakesBody, sweepstakesScript));
-});
-
-router.get('/dashboard/revenue', (_req: Request, res: Response) => {
-  res.type('html').send(pageShell('LOCKED-IN Revenue', revenueBody, revenueScript));
-});
-
-export default router;
+  app.get('/dashboard/revenue', (_req: Request, res: Response) => {
+    res.type('html').send(pageShell('LOCKED-IN Revenue', revenueBody, revenueScript));
+  });
+}
