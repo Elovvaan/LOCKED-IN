@@ -7,10 +7,6 @@ import { useAuth } from '../context/AuthContext';
 import { LoadingScreen } from '../components/LoadingScreen';
 import { ErrorState } from '../components/ErrorState';
 
-const cards = [
-  { label: 'TOTAL WINS', value: '128' },
-  { label: 'CURRENT STREAK', value: '12 ⚡' },
-];
 
 export function ProfileScreen() {
   const route = useRoute<any>();
@@ -22,6 +18,10 @@ export function ProfileScreen() {
   if (error && !data) return <ErrorState message={error} onRetry={reload} />;
 
   const user = data?.user || { username: 'lex_ironfoot', bio: 'Urban Athletics | Elite Tier' };
+  const cards = [
+    { label: 'TOTAL WINS', value: String(data?.user?.eventsWon ?? '—') },
+    { label: 'CHALLENGE WINS', value: String(data?.challengeWins ?? '—') },
+  ];
 
   return (
     <View style={styles.container}>
@@ -38,7 +38,7 @@ export function ProfileScreen() {
         <View style={styles.skillsRow}><View style={styles.skillCard}><Text style={styles.skillTitle}>EXPLOSIVE POWER</Text><Text style={styles.skillValue}>LVL 84</Text></View><View style={styles.skillCard}><Text style={styles.skillTitle}>SPRINT SPEED</Text><Text style={styles.skillValue}>LVL 91</Text></View></View>
 
         <Text style={styles.section}>BATTLE HISTORY</Text>
-        {(data?.challengeWins || [1, 2, 3]).slice(0, 3).map((_: any, i: number) => (
+        {[0, 1, 2].map((_: any, i: number) => (
           <View key={i} style={styles.historyRow}>
             <View style={styles.thumb} />
             <View style={{ flex: 1 }}><Text style={styles.historyTitle}>{['STREET OVERLOAD', 'ZEN MASTERY', 'POWER SLAM'][i]}</Text><Text style={styles.historyMeta}>vs Rival_{i + 1} • {i === 0 ? '2h ago' : i === 1 ? 'Yesterday' : '2d ago'}</Text></View>

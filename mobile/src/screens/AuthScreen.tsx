@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
-  KeyboardAvoidingView, Platform, Alert, ScrollView, ActivityIndicator
+  KeyboardAvoidingView, Platform, Alert, ScrollView, ActivityIndicator,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '../context/AuthContext';
 
 export function AuthScreen() {
@@ -41,10 +42,14 @@ export function AuthScreen() {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
+      <LinearGradient
+        colors={['#0a0a0a', '#0e0e0e', '#000']}
+        style={StyleSheet.absoluteFill}
+      />
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
-        <View style={styles.header}>
-          <Text style={styles.logo}>🔒 LOCKED-IN</Text>
-          <Text style={styles.tagline}>Skill battles. Real stakes.</Text>
+        <View style={styles.hero}>
+          <Text style={styles.logo}>LOCKED-IN</Text>
+          <Text style={styles.tagline}>SKILL BATTLES. REAL STAKES.</Text>
         </View>
 
         <View style={styles.tabs}>
@@ -52,13 +57,13 @@ export function AuthScreen() {
             style={[styles.tab, mode === 'login' && styles.activeTab]}
             onPress={() => setMode('login')}
           >
-            <Text style={[styles.tabText, mode === 'login' && styles.activeTabText]}>Login</Text>
+            <Text style={[styles.tabText, mode === 'login' && styles.activeTabText]}>LOGIN</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.tab, mode === 'register' && styles.activeTab]}
             onPress={() => setMode('register')}
           >
-            <Text style={[styles.tabText, mode === 'register' && styles.activeTabText]}>Sign Up</Text>
+            <Text style={[styles.tabText, mode === 'register' && styles.activeTabText]}>SIGN UP</Text>
           </TouchableOpacity>
         </View>
 
@@ -66,8 +71,8 @@ export function AuthScreen() {
           {mode === 'register' && (
             <TextInput
               style={styles.input}
-              placeholder="Username"
-              placeholderTextColor="#a1a1aa"
+              placeholder="USERNAME"
+              placeholderTextColor="#555"
               value={username}
               onChangeText={setUsername}
               autoCapitalize="none"
@@ -75,8 +80,8 @@ export function AuthScreen() {
           )}
           <TextInput
             style={styles.input}
-            placeholder="Email"
-            placeholderTextColor="#a1a1aa"
+            placeholder="EMAIL"
+            placeholderTextColor="#555"
             value={email}
             onChangeText={setEmail}
             autoCapitalize="none"
@@ -84,8 +89,8 @@ export function AuthScreen() {
           />
           <TextInput
             style={styles.input}
-            placeholder="Password"
-            placeholderTextColor="#a1a1aa"
+            placeholder="PASSWORD"
+            placeholderTextColor="#555"
             value={password}
             onChangeText={setPassword}
             secureTextEntry
@@ -99,7 +104,9 @@ export function AuthScreen() {
             {loading ? (
               <ActivityIndicator size="small" color="#000" />
             ) : (
-              <Text style={styles.buttonText}>{mode === 'login' ? 'Log In' : 'Create Account'}</Text>
+              <Text style={styles.buttonText}>
+                {mode === 'login' ? 'ENTER THE ARENA ➤' : 'CREATE ACCOUNT ➤'}
+              </Text>
             )}
           </TouchableOpacity>
         </View>
@@ -118,41 +125,46 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: 24,
   },
-  header: {
+  hero: {
     alignItems: 'center',
-    marginBottom: 40,
-    gap: 8,
+    marginBottom: 48,
+    gap: 10,
   },
   logo: {
-    color: '#fff',
-    fontSize: 32,
+    color: '#58ff37',
+    fontSize: 48,
     fontWeight: '900',
+    fontStyle: 'italic',
     letterSpacing: -1,
   },
   tagline: {
-    color: '#a1a1aa',
-    fontSize: 15,
+    color: '#fff',
+    fontSize: 13,
+    fontWeight: '700',
+    letterSpacing: 3,
+    opacity: 0.7,
   },
   tabs: {
     flexDirection: 'row',
     backgroundColor: '#111',
-    borderRadius: 10,
-    marginBottom: 24,
-    padding: 4,
+    borderRadius: 4,
+    marginBottom: 28,
+    borderWidth: 1,
+    borderColor: '#222',
   },
   tab: {
     flex: 1,
-    paddingVertical: 10,
+    paddingVertical: 12,
     alignItems: 'center',
-    borderRadius: 8,
   },
   activeTab: {
-    backgroundColor: '#22c55e',
+    backgroundColor: '#58ff37',
   },
   tabText: {
-    color: '#a1a1aa',
-    fontWeight: '600',
-    fontSize: 14,
+    color: '#555',
+    fontWeight: '800',
+    fontSize: 13,
+    letterSpacing: 1.5,
   },
   activeTabText: {
     color: '#000',
@@ -161,28 +173,32 @@ const styles = StyleSheet.create({
     gap: 14,
   },
   input: {
-    backgroundColor: '#111',
+    backgroundColor: '#131313',
     color: '#fff',
-    borderRadius: 10,
+    borderRadius: 4,
     paddingHorizontal: 16,
-    paddingVertical: 14,
-    fontSize: 15,
+    paddingVertical: 16,
+    fontSize: 14,
     borderWidth: 1,
     borderColor: '#222',
+    letterSpacing: 1,
   },
   button: {
-    backgroundColor: '#22c55e',
-    borderRadius: 10,
-    paddingVertical: 15,
+    backgroundColor: '#58ff37',
+    borderRadius: 4,
+    paddingVertical: 18,
     alignItems: 'center',
-    marginTop: 4,
+    marginTop: 8,
   },
   buttonDisabled: {
-    backgroundColor: '#333',
+    backgroundColor: '#1f1f1f',
+    borderWidth: 1,
+    borderColor: '#333',
   },
   buttonText: {
     color: '#000',
-    fontWeight: '700',
-    fontSize: 16,
+    fontWeight: '900',
+    fontSize: 15,
+    letterSpacing: 2,
   },
 });
