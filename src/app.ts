@@ -33,6 +33,25 @@ if (process.env.NODE_ENV !== 'test') {
   app.use(limiter);
 }
 
+// Root — returns API manifest so the Railway URL shows something meaningful in a browser
+app.get('/', (_req: Request, res: Response) => {
+  res.json({
+    api: 'LOCKED-IN',
+    version: '1.0.0',
+    status: 'ok',
+    endpoints: [
+      'GET  /health',
+      'POST /auth/register',
+      'POST /auth/login',
+      'GET  /events',
+      'POST /events',
+      'GET  /users/:id/profile',
+      'GET  /skills',
+      'POST /skills',
+    ],
+  });
+});
+
 // Health check — used by Railway and uptime monitors
 app.get('/health', (_req: Request, res: Response) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
