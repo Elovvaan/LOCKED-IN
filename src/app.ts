@@ -1,11 +1,12 @@
 import express, { Request, Response } from 'express';
 import cors from 'cors';
 import rateLimit from 'express-rate-limit';
+import path from 'path';
+import { existsSync } from 'fs';
 import authRoutes from './routes/auth';
 import eventRoutes from './routes/events';
 import userRoutes from './routes/users';
 import skillRoutes from './routes/skills';
-import { registerDashboardRoutes } from './routes/dashboard';
 import revenueRoutes from './routes/revenue';
 import sweepstakesRoutes from './routes/sweepstakes';
 
@@ -37,12 +38,30 @@ app.get('/health', (_req: Request, res: Response) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-registerDashboardRoutes(app);
+const frontendDistDir = process.env.FRONTEND_DIST_DIR || path.resolve(__dirname, '../mobile/dist');
+const frontendIndexPath = path.join(frontendDistDir, 'index.html');
+const hasFrontendBuild = existsSync(frontendIndexPath);
+const apiPrefixes = ['/auth', '/events', '/users', '/skills', '/revenue', '/sweepstakes', '/health'];
+
+if (hasFrontendBuild) {
+  app.use(express.static(frontendDistDir));
+}
+
 app.use('/auth', authRoutes);
 app.use('/events', eventRoutes);
 app.use('/users', userRoutes);
 app.use('/skills', skillRoutes);
 app.use('/revenue', revenueRoutes);
 app.use('/sweepstakes', sweepstakesRoutes);
+
+if (hasFrontendBuild) {
+  app.get('*', (req: Request, res: Response, next) => {
+    if (apiPrefixes.some((prefix) => req.path === prefix || req.path.startsWith(`${prefix}/`))) {
+      return next();
+    }
+
+    return res.sendFile(frontendIndexPath);
+  });
+}
 
 export default app;

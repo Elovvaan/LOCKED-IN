@@ -1,4 +1,5 @@
 process.env.NODE_ENV = 'test';
+process.env.FRONTEND_DIST_DIR = `${__dirname}/fixtures/frontend-dist`;
 
 import request from 'supertest';
 import app from '../src/app';
@@ -12,26 +13,25 @@ afterAll(async () => {
   await sequelize.close();
 });
 
-describe('Dashboard UI routes', () => {
-  it('GET / should render LOCKED-IN dashboard HTML', async () => {
+describe('Frontend static serving', () => {
+  it('GET / should render frontend index.html', async () => {
     const res = await request(app).get('/');
     expect(res.status).toBe(200);
     expect(res.headers['content-type']).toContain('text/html');
-    expect(res.text).toContain('LOCKED-IN');
-    expect(res.text).toContain('Test Flow');
+    expect(res.text).toContain('LOCKED-IN Frontend Fixture');
   });
 
-  it('GET /dashboard/sweepstakes should render sweepstakes dashboard HTML', async () => {
+  it('GET /dashboard/sweepstakes should fall back to frontend index.html (SPA routing)', async () => {
     const res = await request(app).get('/dashboard/sweepstakes');
     expect(res.status).toBe(200);
     expect(res.headers['content-type']).toContain('text/html');
-    expect(res.text).toContain('Create Sweepstakes Campaign');
+    expect(res.text).toContain('LOCKED-IN Frontend Fixture');
   });
 
-  it('GET /dashboard/revenue should render revenue dashboard HTML', async () => {
-    const res = await request(app).get('/dashboard/revenue');
+  it('GET /assets/app.js should serve static frontend assets', async () => {
+    const res = await request(app).get('/assets/app.js');
     expect(res.status).toBe(200);
-    expect(res.headers['content-type']).toContain('text/html');
-    expect(res.text).toContain('Creator Vault Balance');
+    expect(res.headers['content-type']).toContain('application/javascript');
+    expect(res.text).toContain('frontend fixture asset');
   });
 });
