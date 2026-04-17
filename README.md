@@ -164,7 +164,7 @@ No installs, no terminal, no setup. The app loads in your browser and connects t
 | Backend | Express API — already running on Railway at `https://locked-in-production.up.railway.app` |
 | Trigger | Push to `main` → GitHub Actions builds the web app → goes live at the URL above |
 
-> **One-time setup for the repo owner:** Go to the repository **Settings → Pages → Source** and set it to **"GitHub Actions"**. After that, every push to `main` automatically re-deploys the app.
+> The deployment workflow configures GitHub Pages automatically, so pushes to `main` can deploy without manual Pages source setup.
 
 ---
 
