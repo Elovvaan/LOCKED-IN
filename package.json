@@ -4,7 +4,7 @@
   "description": "REAL CHALLENGE GAME backend API",
   "main": "dist/index.js",
   "scripts": {
-    "build": "tsc",
+    "build": "npm --prefix mobile install && npm --prefix mobile run build:web && tsc",
     "start": "node dist/index.js",
     "dev": "ts-node src/index.ts",
     "seed": "ts-node src/seed.ts",

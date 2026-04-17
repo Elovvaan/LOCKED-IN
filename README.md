@@ -168,20 +168,13 @@ No installs, no terminal, no setup. The app loads in your browser and connects t
 
 ---
 
-## Web Dashboard (Railway-ready)
+## Web App on Railway
 
-The backend now serves a minimal browser UI so the deployed app is immediately visible at the root URL.
+The backend serves the real LOCKED-IN frontend (Expo web export from `mobile/`) at `/`.
 
-- **Root dashboard**: `/`
-- **Sweepstakes dashboard**: `/dashboard/sweepstakes`
-- **Revenue dashboard**: `/dashboard/revenue`
+- **Frontend root**: `/`
+- **SPA routes**: fallback to frontend `index.html`
 - **Health check**: `/health`
-
-### Test deployed app in browser
-
-1. Open your Railway URL (example: `https://locked-in-production.up.railway.app/`) — it should render the **LOCKED-IN** dashboard instead of `Cannot GET /`.
-2. Use the Quick Links and Test Flow buttons to navigate core flows.
-3. For protected endpoints, paste a JWT token into the dashboard token field; otherwise the UI will show **endpoint live but auth required** when it receives `401/403`.
 
 ---
 
