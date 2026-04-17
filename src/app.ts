@@ -5,6 +5,7 @@ import authRoutes from './routes/auth';
 import eventRoutes from './routes/events';
 import userRoutes from './routes/users';
 import skillRoutes from './routes/skills';
+import { registerDashboardRoutes } from './routes/dashboard';
 import revenueRoutes from './routes/revenue';
 import sweepstakesRoutes from './routes/sweepstakes';
 
@@ -36,6 +37,7 @@ app.get('/health', (_req: Request, res: Response) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+registerDashboardRoutes(app);
 app.use('/auth', authRoutes);
 app.use('/events', eventRoutes);
 app.use('/users', userRoutes);
