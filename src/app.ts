@@ -6,6 +6,7 @@ import eventRoutes from './routes/events';
 import userRoutes from './routes/users';
 import skillRoutes from './routes/skills';
 import revenueRoutes from './routes/revenue';
+import sweepstakesRoutes from './routes/sweepstakes';
 
 const app = express();
 // All origins are allowed: this is a mobile-first API consumed by native Expo
@@ -40,5 +41,6 @@ app.use('/events', eventRoutes);
 app.use('/users', userRoutes);
 app.use('/skills', skillRoutes);
 app.use('/revenue', revenueRoutes);
+app.use('/sweepstakes', sweepstakesRoutes);
 
 export default app;
