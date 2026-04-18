@@ -132,7 +132,7 @@ EXPO_PUBLIC_API_URL=http://localhost:3000
 npm install
 npm run dev        # start dev server with ts-node
 npm test           # run Jest integration tests
-npm run build      # compile TypeScript to dist/
+npm run build      # compile backend TypeScript to dist/
 ```
 
 ### Mobile
@@ -170,6 +170,21 @@ No installs, no terminal, no setup. The app loads in your browser and connects t
 
 ## Railway Deployment (Backend Only)
 
+Railway runs only the backend API/admin surface. It does **not** build, export, host, or serve the Expo web/mobile frontend.
+
+- **Backend root index**: `/`
+- **Health check**: `/health`
+- **API manifest**: `/api`
+- **Backend manifest alias**: `/backend`
+- **Railway build/start path**:
+  - install backend dependencies: `npm install`
+  - build backend: `npm run build:backend`
+  - start backend: `npm run start`
+
+Frontend/mobile deploys are separate:
+- **Web preview** can be deployed from `mobile/` via GitHub Pages workflow.
+- **iOS/Android apps** are released separately with Expo EAS (App Store / Google Play).
+- Frontend/mobile clients consume Railway APIs by setting `EXPO_PUBLIC_API_URL` to the Railway backend base URL.
 Railway runs only the backend API/admin surface. It does **not** build or serve Expo web assets from `mobile/`.
 
 - **Health check**: `/health`

@@ -25,6 +25,14 @@ const apiManifest = {
     'GET  /api',
     'GET  /backend',
     'GET  /health',
+    'GET  /api',
+    'GET  /backend',
+    'ANY  /auth/*',
+    'ANY  /users/*',
+    'ANY  /events/*',
+    'ANY  /skills/*',
+    'ANY  /revenue/*',
+    'ANY  /sweepstakes/*',
     'POST /auth/register',
     'POST /auth/login',
     'GET  /events',
@@ -55,6 +63,14 @@ app.get('/health', (_req: Request, res: Response) => {
 });
 
 app.get('/', (_req: Request, res: Response) => {
+  res.json({
+    service: 'LOCKED-IN backend',
+    routes: {
+      health: '/health',
+      api: '/api',
+      backend: '/backend',
+    },
+  });
   res.json(apiManifest);
 });
 
