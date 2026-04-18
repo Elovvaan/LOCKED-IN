@@ -9,10 +9,8 @@ import revenueRoutes from './routes/revenue';
 import sweepstakesRoutes from './routes/sweepstakes';
 
 const app = express();
-// All origins are allowed: this is a mobile-first API consumed by native Expo
-// clients that do not enforce browser CORS restrictions. Expo Web is also
-// supported without a fixed origin. If a web-only front-end is added later,
-// restrict origins via the CORS_ORIGIN environment variable.
+// All origins are allowed for native/mobile clients by default.
+// If you need to restrict browser origins, set CORS_ORIGIN.
 const allowedOrigin = process.env.CORS_ORIGIN;
 app.use(cors(allowedOrigin ? { origin: allowedOrigin } : undefined));
 app.use(express.json());
@@ -22,9 +20,8 @@ const apiManifest = {
   version: '1.0.0',
   status: 'ok',
   endpoints: [
-    'GET  /api',
-    'GET  /backend',
     'GET  /health',
+    'GET  /',
     'GET  /api',
     'GET  /backend',
     'ANY  /auth/*',
@@ -71,7 +68,6 @@ app.get('/', (_req: Request, res: Response) => {
       backend: '/backend',
     },
   });
-  res.json(apiManifest);
 });
 
 app.get('/api', (_req: Request, res: Response) => {
