@@ -168,15 +168,18 @@ No installs, no terminal, no setup. The app loads in your browser and connects t
 
 ---
 
-## Web App on Railway
+## Railway Deployment (Backend Only)
 
-The backend serves the real LOCKED-IN frontend (Expo web export from `mobile/`) at `/`.
+Railway runs only the backend API/admin surface. It does **not** build or serve Expo web assets from `mobile/`.
 
-- **Frontend root**: `/`
-- **API manifest**: `/api`
-- **SPA routes**: fallback to frontend `index.html`
 - **Health check**: `/health`
-- **Build pipeline**: `npm run build` runs both `npm run build:backend` (backend TypeScript build to `dist/`) and `npm run build:frontend` (Expo web export to `mobile/dist/`). This is the same behavior to expect for local/dev builds as well.
+- **API manifest**: `/api`
+- **Backend/admin entry**: `/backend`
+- **Root**: `/` returns the backend API manifest
+- **Build pipeline**: `npm run build` runs backend TypeScript build only (`npm run build:backend`).
+- **Runtime**: `npm run start` serves backend routes only (`/auth/*`, `/users/*`, `/events/*`, `/skills/*`, `/revenue/*`, `/sweepstakes/*`).
+
+Frontend/mobile deploys remain separate (GitHub Pages for web preview, EAS/App Store/Google Play for mobile) and consume Railway via `EXPO_PUBLIC_API_URL`.
 
 ---
 
