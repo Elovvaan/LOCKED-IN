@@ -4,11 +4,9 @@
   "description": "REAL CHALLENGE GAME backend API",
   "main": "dist/index.js",
   "scripts": {
-    "postinstall": "npm --prefix mobile ci",
     "build:backend": "tsc",
-    "build:frontend": "npm --prefix mobile run build:web",
-    "build": "npm run build:backend && npm run build:frontend",
-    "prestart": "node -e \"const fs=require('fs'); const {execSync}=require('child_process'); if (!fs.existsSync('dist/index.js') || !fs.existsSync('mobile/dist/index.html')) { execSync('npm run build', { stdio: 'inherit' }); }\"",
+    "build": "npm run build:backend",
+    "prestart": "node -e \"const fs=require('fs'); const {execSync}=require('child_process'); if (!fs.existsSync('dist/index.js')) { execSync('npm run build:backend', { stdio: 'inherit' }); }\"",
     "start": "node dist/index.js",
     "dev": "ts-node src/index.ts",
     "seed": "ts-node src/seed.ts",

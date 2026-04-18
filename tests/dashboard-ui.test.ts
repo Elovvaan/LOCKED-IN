@@ -1,5 +1,4 @@
 process.env.NODE_ENV = 'test';
-process.env.FRONTEND_DIST_DIR = `${__dirname}/fixtures/frontend-dist`;
 
 import request from 'supertest';
 import app from '../src/app';
@@ -13,32 +12,33 @@ afterAll(async () => {
   await sequelize.close();
 });
 
-describe('Frontend static serving', () => {
-  it('GET /api should return API manifest even when frontend is enabled', async () => {
+describe('Backend root structure', () => {
+  it('GET /api should return API manifest', async () => {
     const res = await request(app).get('/api');
     expect(res.status).toBe(200);
     expect(res.headers['content-type']).toContain('application/json');
     expect(res.body.api).toBe('LOCKED-IN');
   });
 
-  it('GET / should render frontend index.html', async () => {
+  it('GET /backend should return API manifest', async () => {
+    const res = await request(app).get('/backend');
+    expect(res.status).toBe(200);
+    expect(res.headers['content-type']).toContain('application/json');
+    expect(res.body.api).toBe('LOCKED-IN');
+  });
+
+  it('GET / should return backend route index', async () => {
     const res = await request(app).get('/');
     expect(res.status).toBe(200);
-    expect(res.headers['content-type']).toContain('text/html');
-    expect(res.text).toContain('LOCKED-IN Frontend Fixture');
+    expect(res.headers['content-type']).toContain('application/json');
+    expect(res.body.service).toBe('LOCKED-IN backend');
+    expect(res.body.routes.health).toBe('/health');
+    expect(res.body.routes.api).toBe('/api');
+    expect(res.body.routes.backend).toBe('/backend');
   });
 
-  it('GET /dashboard/sweepstakes should fall back to frontend index.html (SPA routing)', async () => {
+  it('GET /dashboard/sweepstakes should no longer use frontend SPA fallback', async () => {
     const res = await request(app).get('/dashboard/sweepstakes');
-    expect(res.status).toBe(200);
-    expect(res.headers['content-type']).toContain('text/html');
-    expect(res.text).toContain('LOCKED-IN Frontend Fixture');
-  });
-
-  it('GET /assets/app.js should serve static frontend assets', async () => {
-    const res = await request(app).get('/assets/app.js');
-    expect(res.status).toBe(200);
-    expect(res.headers['content-type']).toContain('application/javascript');
-    expect(res.text).toContain('frontend fixture asset');
+    expect(res.status).toBe(404);
   });
 });

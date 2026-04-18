@@ -20,8 +20,17 @@ describe('Health Check', () => {
     expect(res.body.timestamp).toBeDefined();
   });
 
-  it('GET / should return API manifest', async () => {
+  it('GET / should return backend route index', async () => {
     const res = await request(app).get('/');
+    expect(res.status).toBe(200);
+    expect(res.body.service).toBe('LOCKED-IN backend');
+    expect(res.body.routes.health).toBe('/health');
+    expect(res.body.routes.api).toBe('/api');
+    expect(res.body.routes.backend).toBe('/backend');
+  });
+
+  it('GET /backend should return API manifest', async () => {
+    const res = await request(app).get('/backend');
     expect(res.status).toBe(200);
     expect(res.body.api).toBe('LOCKED-IN');
     expect(res.body.status).toBe('ok');
@@ -62,44 +71,6 @@ describe('Logged-in diagnostic', () => {
   });
 
   it('rejects profile fetch with no token', async () => {
-    const res = await request(app).get('/users/1/profile');
-    expect(res.status).toBe(401);
-  });
-});
-
-describe('Logged-in diagnostic', () => {
-  let token: string;
-
-  it('registers a user and returns a JWT', async () => {
-    const res = await request(app).post('/auth/register').send({
-      username: 'diag_user',
-      email: 'diag@lockedin.test',
-      password: 'diagpass123',
-    });
-    expect(res.status).toBe(201);
-    expect(res.body.token).toBeDefined();
-    token = res.body.token;
-  });
-
-  it('logged-in user can fetch their own profile', async () => {
-    const loginRes = await request(app).post('/auth/login').send({
-      email: 'diag@lockedin.test',
-      password: 'diagpass123',
-    });
-    expect(loginRes.status).toBe(200);
-    token = loginRes.body.token;
-    const userId = loginRes.body.user.id;
-
-    const profileRes = await request(app)
-      .get(`/users/${userId}/profile`)
-      .set('Authorization', `Bearer ${token}`);
-    expect(profileRes.status).toBe(200);
-    expect(profileRes.body.user.username).toBe('diag_user');
-    expect(typeof profileRes.body.challengeWins).toBe('number');
-    expect(typeof profileRes.body.responsesMade).toBe('number');
-  });
-
-  it('rejects profile fetch without a token', async () => {
     const res = await request(app).get('/users/1/profile');
     expect(res.status).toBe(401);
   });
