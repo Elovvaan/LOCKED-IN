@@ -22,6 +22,8 @@ const apiManifest = {
   version: '1.0.0',
   status: 'ok',
   endpoints: [
+    'GET  /api',
+    'GET  /backend',
     'GET  /health',
     'GET  /api',
     'GET  /backend',
@@ -69,6 +71,7 @@ app.get('/', (_req: Request, res: Response) => {
       backend: '/backend',
     },
   });
+  res.json(apiManifest);
 });
 
 app.get('/api', (_req: Request, res: Response) => {

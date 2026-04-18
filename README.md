@@ -185,6 +185,16 @@ Frontend/mobile deploys are separate:
 - **Web preview** can be deployed from `mobile/` via GitHub Pages workflow.
 - **iOS/Android apps** are released separately with Expo EAS (App Store / Google Play).
 - Frontend/mobile clients consume Railway APIs by setting `EXPO_PUBLIC_API_URL` to the Railway backend base URL.
+Railway runs only the backend API/admin surface. It does **not** build or serve Expo web assets from `mobile/`.
+
+- **Health check**: `/health`
+- **API manifest**: `/api`
+- **Backend/admin entry**: `/backend`
+- **Root**: `/` returns the backend API manifest
+- **Build pipeline**: `npm run build` runs backend TypeScript build only (`npm run build:backend`).
+- **Runtime**: `npm run start` serves backend routes only (`/auth/*`, `/users/*`, `/events/*`, `/skills/*`, `/revenue/*`, `/sweepstakes/*`).
+
+Frontend/mobile deploys remain separate (GitHub Pages for web preview, EAS/App Store/Google Play for mobile) and consume Railway via `EXPO_PUBLIC_API_URL`.
 
 ---
 

@@ -13,6 +13,7 @@ afterAll(async () => {
 });
 
 describe('Backend root structure', () => {
+describe('Backend route manifest surface', () => {
   it('GET /api should return API manifest', async () => {
     const res = await request(app).get('/api');
     expect(res.status).toBe(200);
@@ -45,5 +46,17 @@ describe('Backend root structure', () => {
   it('GET /feed should return 404', async () => {
     const res = await request(app).get('/feed');
     expect(res.status).toBe(404);
+  it('GET / should return API manifest', async () => {
+    const res = await request(app).get('/');
+    expect(res.status).toBe(200);
+    expect(res.headers['content-type']).toContain('application/json');
+    expect(res.body.api).toBe('LOCKED-IN');
+  });
+
+  it('GET /backend should return API manifest', async () => {
+    const res = await request(app).get('/backend');
+    expect(res.status).toBe(200);
+    expect(res.headers['content-type']).toContain('application/json');
+    expect(res.body.api).toBe('LOCKED-IN');
   });
 });

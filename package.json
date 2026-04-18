@@ -7,6 +7,7 @@
     "build:backend": "tsc",
     "build": "npm run build:backend",
     "prestart": "node -e \"const fs=require('fs'); const {execSync}=require('child_process'); if (!fs.existsSync('dist/index.js')) { execSync('npm run build:backend', { stdio: 'inherit' }); }\"",
+    "prestart": "node -e \"const fs=require('fs'); const {execSync}=require('child_process'); if (!fs.existsSync('dist/index.js')) { execSync('npm run build', { stdio: 'inherit' }); }\"",
     "start": "node dist/index.js",
     "dev": "ts-node src/index.ts",
     "seed": "ts-node src/seed.ts",
