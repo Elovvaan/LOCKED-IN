@@ -6,7 +6,7 @@
   "scripts": {
     "build:backend": "tsc",
     "build": "npm run build:backend",
-    "prestart": "node -e \"const fs=require('fs'); const {execSync}=require('child_process'); if (!fs.existsSync('dist/index.js')) { execSync('npm run build:backend', { stdio: 'inherit' }); }\"",
+    "prestart": "node -e \"const fs=require('fs'); if (!fs.existsSync('dist/index.js')) { console.error('Missing build artifact: dist/index.js. Run `npm run build` during deployment before starting the app.'); process.exit(1); }\"",
     "prestart": "node -e \"const fs=require('fs'); const {execSync}=require('child_process'); if (!fs.existsSync('dist/index.js')) { execSync('npm run build', { stdio: 'inherit' }); }\"",
     "start": "node dist/index.js",
     "dev": "ts-node src/index.ts",
