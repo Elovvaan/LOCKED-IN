@@ -1,8 +1,6 @@
 import express, { Request, Response } from 'express';
 import cors from 'cors';
 import rateLimit from 'express-rate-limit';
-import path from 'path';
-import { existsSync } from 'fs';
 import authRoutes from './routes/auth';
 import eventRoutes from './routes/events';
 import userRoutes from './routes/users';
@@ -24,6 +22,8 @@ const apiManifest = {
   version: '1.0.0',
   status: 'ok',
   endpoints: [
+    'GET  /api',
+    'GET  /backend',
     'GET  /health',
     'POST /auth/register',
     'POST /auth/login',
@@ -54,24 +54,15 @@ app.get('/health', (_req: Request, res: Response) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-const defaultFrontendDistDir = path.resolve(__dirname, '../mobile/dist');
-// In tests we only serve frontend files when explicitly pointed at a fixture.
-const frontendDistDir =
-  process.env.FRONTEND_DIST_DIR || (process.env.NODE_ENV === 'test' ? '' : defaultFrontendDistDir);
-const hasFrontendBuild = Boolean(frontendDistDir) && existsSync(path.join(frontendDistDir, 'index.html'));
-const frontendIndexPath = hasFrontendBuild ? path.join(frontendDistDir, 'index.html') : '';
-const apiPrefixes = ['/auth', '/events', '/users', '/skills', '/revenue', '/sweepstakes', '/health'];
-
-if (hasFrontendBuild) {
-  app.use(express.static(frontendDistDir));
-} else {
-  // Root falls back to API manifest when no web frontend build is available.
-  app.get('/', (_req: Request, res: Response) => {
-    res.json(apiManifest);
-  });
-}
+app.get('/', (_req: Request, res: Response) => {
+  res.json(apiManifest);
+});
 
 app.get('/api', (_req: Request, res: Response) => {
+  res.json(apiManifest);
+});
+
+app.get('/backend', (_req: Request, res: Response) => {
   res.json(apiManifest);
 });
 
@@ -81,15 +72,5 @@ app.use('/users', userRoutes);
 app.use('/skills', skillRoutes);
 app.use('/revenue', revenueRoutes);
 app.use('/sweepstakes', sweepstakesRoutes);
-
-if (hasFrontendBuild) {
-  app.get('*', (req: Request, res: Response, next) => {
-    if (apiPrefixes.some((prefix) => req.path === prefix || req.path.startsWith(`${prefix}/`))) {
-      return next();
-    }
-
-    return res.sendFile(frontendIndexPath);
-  });
-}
 
 export default app;
