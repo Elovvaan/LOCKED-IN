@@ -146,28 +146,6 @@ REAL CHALLENGE GAME
 
 ---
 
-## Try the app — no terminal needed
-
-> **Open the link below in any browser. That's it.**
-
-🔗 **[https://elovvaan.github.io/LOCKED-IN](https://elovvaan.github.io/LOCKED-IN)**
-
-No installs, no terminal, no setup. The app loads in your browser and connects to the live backend automatically.
-
----
-
-**How it works**
-
-| | |
-|---|---|
-| Frontend | Expo web app — deployed to GitHub Pages automatically on every push to `main` |
-| Backend | Express API — already running on Railway at `https://locked-in-production.up.railway.app` |
-| Trigger | Push to `main` → GitHub Actions builds the web app → goes live at the URL above |
-
-> The deployment workflow configures GitHub Pages automatically, so pushes to `main` can deploy without manual Pages source setup.
-
----
-
 ## Railway Deployment (Backend Only)
 
 Railway runs only the backend API/admin surface. It does **not** build, export, host, or serve the Expo web/mobile frontend.
@@ -182,19 +160,12 @@ Railway runs only the backend API/admin surface. It does **not** build, export, 
   - start backend: `npm run start`
 
 Frontend/mobile deploys are separate:
-- **Web preview** can be deployed from `mobile/` via GitHub Pages workflow.
 - **iOS/Android apps** are released separately with Expo EAS (App Store / Google Play).
 - Frontend/mobile clients consume Railway APIs by setting `EXPO_PUBLIC_API_URL` to the Railway backend base URL.
-Railway runs only the backend API/admin surface. It does **not** build or serve Expo web assets from `mobile/`.
+- **Build pipeline**: backend CI installs dependencies, runs `npm run build`, runs `npm test`, then deploys backend to Railway.
+- **Runtime routes**: `/health`, `/api`, `/backend`, `/auth/*`, `/users/*`, `/events/*`, `/skills/*`, `/revenue/*`, `/sweepstakes/*`.
 
-- **Health check**: `/health`
-- **API manifest**: `/api`
-- **Backend/admin entry**: `/backend`
-- **Root**: `/` returns the backend API manifest
-- **Build pipeline**: `npm run build` runs backend TypeScript build only (`npm run build:backend`).
-- **Runtime**: `npm run start` serves backend routes only (`/auth/*`, `/users/*`, `/events/*`, `/skills/*`, `/revenue/*`, `/sweepstakes/*`).
-
-Frontend/mobile deploys remain separate (GitHub Pages for web preview, EAS/App Store/Google Play for mobile) and consume Railway via `EXPO_PUBLIC_API_URL`.
+The mobile app remains in `mobile/` for future App Store / Google Play releases and does **not** block backend deployment.
 
 ---
 
@@ -340,7 +311,7 @@ npx expo start                # opens Expo DevTools / QR code
 
 ### How Mobile Connects to the Backend
 ### How Mobile Connects to the Backend
-The Axios client in `mobile/src/lib/api.ts` picks up `process.env.EXPO_PUBLIC_API_URL` and prefixes every request with it. The GitHub Actions deployment sets this to the Railway URL automatically — no `.env` file needed.
+The Axios client in `mobile/src/lib/api.ts` picks up `process.env.EXPO_PUBLIC_API_URL` and prefixes every request with it.
 
 ---
 
